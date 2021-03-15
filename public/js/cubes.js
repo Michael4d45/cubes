@@ -1,5 +1,134 @@
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./resources/js/pointerLockControls.js":
+/*!*********************************************!*\
+  !*** ./resources/js/pointerLockControls.js ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "PointerLockControls": () => (/* binding */ PointerLockControls)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+
+var PointerLockControls = function PointerLockControls(camera, domElement) {
+  if (domElement === undefined) {
+    console.warn('THREE.PointerLockControls: The second parameter "domElement" is now mandatory.');
+    domElement = document.body;
+  }
+
+  this.domElement = domElement;
+  this.isLocked = false; // Set to constrain the pitch of the camera
+  // Range is 0 to Math.PI radians
+
+  this.minPolarAngle = 0; // radians
+
+  this.maxPolarAngle = Math.PI; // radians
+  //
+  // internals
+  //
+
+  var scope = this;
+  var changeEvent = {
+    type: 'change'
+  };
+  var lockEvent = {
+    type: 'lock'
+  };
+  var unlockEvent = {
+    type: 'unlock'
+  };
+  var euler = new three__WEBPACK_IMPORTED_MODULE_0__.Euler(0, 0, 0, 'YXZ');
+  var PI_2 = Math.PI / 2;
+  var vec = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+  function onMouseMove(event) {
+    if (scope.isLocked === false) return;
+    var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+    euler.setFromQuaternion(camera.quaternion);
+    euler.y -= movementX * 0.002;
+    euler.x -= movementY * 0.002;
+    euler.x = Math.max(PI_2 - scope.maxPolarAngle, Math.min(PI_2 - scope.minPolarAngle, euler.x));
+    camera.quaternion.setFromEuler(euler);
+    scope.dispatchEvent(changeEvent);
+  }
+
+  function onPointerlockChange() {
+    if (scope.domElement.ownerDocument.pointerLockElement === scope.domElement) {
+      scope.dispatchEvent(lockEvent);
+      scope.isLocked = true;
+    } else {
+      scope.dispatchEvent(unlockEvent);
+      scope.isLocked = false;
+    }
+  }
+
+  function onPointerlockError() {
+    console.error('THREE.PointerLockControls: Unable to use Pointer Lock API');
+  }
+
+  this.connect = function () {
+    scope.domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
+    scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange);
+    scope.domElement.ownerDocument.addEventListener('pointerlockerror', onPointerlockError);
+  };
+
+  this.disconnect = function () {
+    scope.domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+    scope.domElement.ownerDocument.removeEventListener('pointerlockchange', onPointerlockChange);
+    scope.domElement.ownerDocument.removeEventListener('pointerlockerror', onPointerlockError);
+  };
+
+  this.dispose = function () {
+    this.disconnect();
+  };
+
+  this.getObject = function () {
+    // retaining this method for backward compatibility
+    return camera;
+  };
+
+  this.getDirection = function () {
+    var direction = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3(0, 0, -1);
+    return function (v) {
+      return v.copy(direction).applyQuaternion(camera.quaternion);
+    };
+  }();
+
+  this.moveForward = function (distance) {
+    // move forward parallel to the xz-plane
+    // assumes camera.up is y-up
+    vec.setFromMatrixColumn(camera.matrix, 0);
+    vec.crossVectors(camera.up, vec);
+    camera.position.addScaledVector(vec, distance);
+  };
+
+  this.moveRight = function (distance) {
+    vec.setFromMatrixColumn(camera.matrix, 0);
+    camera.position.addScaledVector(vec, distance);
+  };
+
+  this.lock = function () {
+    this.domElement.requestPointerLock();
+  };
+
+  this.unlock = function () {
+    scope.domElement.ownerDocument.exitPointerLock();
+  };
+
+  this.connect();
+};
+
+PointerLockControls.prototype = Object.create(three__WEBPACK_IMPORTED_MODULE_0__.EventDispatcher.prototype);
+PointerLockControls.prototype.constructor = PointerLockControls;
+
+
+/***/ }),
 
 /***/ "./node_modules/three/build/three.module.js":
 /*!**************************************************!*\
@@ -7,7 +136,6 @@
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "ACESFilmicToneMapping": () => (/* binding */ ACESFilmicToneMapping),
@@ -49465,20 +49593,29 @@ var __webpack_exports__ = {};
 /*!*******************************!*\
   !*** ./resources/js/cubes.js ***!
   \*******************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _pointerLockControls__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./pointerLockControls */ "./resources/js/pointerLockControls.js");
 var THREE = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
 
 var canvas = document.querySelector('#c');
 var renderer = new THREE.WebGLRenderer({
   canvas: canvas
 });
-var fov = 75;
+var fov = 45;
 var aspect = 2; // the canvas default
 
 var near = 0.1;
-var far = 5;
+var far = 100;
 var camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.z = 2;
+camera.position.y = 4;
 var scene = new THREE.Scene();
+var controls = new _pointerLockControls__WEBPACK_IMPORTED_MODULE_0__.PointerLockControls(camera, canvas);
+canvas.addEventListener('click', function () {
+  controls.lock();
+});
+scene.add(controls.getObject());
 
 function resizeRendererToDisplaySize(renderer) {
   var canvas = renderer.domElement;
@@ -49491,6 +49628,32 @@ function resizeRendererToDisplaySize(renderer) {
   }
 
   return needResize;
+}
+
+{
+  var color = 0xFFFFFF;
+  var intensity = 1;
+  var light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(1, 5, 1);
+  scene.add(light);
+}
+{
+  var boxWidth = 1;
+  var boxHeight = 1;
+  var boxDepth = 1;
+  var geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+  for (var x = -100; x < 100; x++) {
+    for (var z = -100; z < 100; z++) {
+      var material = new THREE.MeshPhongMaterial({
+        color: Math.random() * 0xffffff,
+        flatShading: true
+      });
+      var cube = new THREE.Mesh(geometry, material);
+      cube.position.set(x, 0, z);
+      scene.add(cube);
+    }
+  }
 }
 
 function render(time) {
