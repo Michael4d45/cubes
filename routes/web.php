@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('', [HomeController::class, 'home'])->name('home');
+Route::get('play', [HomeController::class, 'play'])->name('play');
 
 Route::group(['middleware' => ['auth:sanctum', 'verified', 'role:admin']], function () {
-    Route::get('dashboard/{page?}', [SettingController::class, 'index'])->name('dashboard');
+    Route::get('admin/{page?}', [SettingController::class, 'index'])->name('admin');
     Route::put('settings/{setting?}', [SettingController::class, 'update'])->name('settings');
 });

@@ -15,6 +15,6 @@ class SettingController extends Controller
     public function update(Request $request, string $setting)
     {
         Setting::$setting($request->$setting);
-        return redirect()->route('dashboard', $setting);
+        return redirect()->route('admin', $setting);
     }
 }

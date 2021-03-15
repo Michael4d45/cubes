@@ -1,13 +1,9 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">
-            {{ __('Home') }}
-        </h2>
-    </x-slot>
-
     <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-
+        <div class="flex mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <a class='m-auto' href='{{ route('play') }}'>
+                <button class='p-3 text-4xl uppercase bg-yellow-300 rounded'>Play!</button>
+            </a>
         </div>
     </div>
 </x-app-layout>
