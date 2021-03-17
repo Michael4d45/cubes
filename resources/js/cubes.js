@@ -40,74 +40,55 @@ function init() {
 
     scene.add(controls.getObject());
 
-    let geometries = [];
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
     {
-        const s = 0.5;
+        const material = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+        });
 
-        for (let x = -100; x < 100; x++) {
-            for (let y = -10; y < 10; y++) {
-                for (let z = -100; z < 100; z++) {
-                    const geometry = new THREE.BoxGeometry(s, s, s);
-                    geometry.translate(x, y, z);
+        const myWorker = new Worker('./js/loadCubes.js');
+        myWorker.onmessage = function (e) {
+            let geometries = [];
+            for (const elem of e.data) {
+                let geometry = new THREE.BoxGeometry;
+                let index = new THREE.Uint16BufferAttribute;
+                Object.assign(geometry, elem);
+                Object.assign(index, elem.index);
+                geometry.index = index;
+                geometries.push(geometry);
+            }
+            const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
+                geometries, false);
+            const mesh = new THREE.Mesh(mergedGeometry, material);
+            scene.add(mesh)
+        }
 
-                    const rgb = [
-                        Math.random() * 255,
-                        Math.random() * 255,
-                        Math.random() * 255
-                    ];
-                    console.log(rgb)
-
-                    // make an array to store colors for each vertex
-                    const numVerts = geometry.getAttribute('position').count;
-                    const itemSize = 3;  // r, g, b
-                    const colors = new Uint8Array(itemSize * numVerts);
-
-                    // copy the color into the colors array for each vertex
-                    colors.forEach((v, ndx) => {
-                        colors[ndx] = rgb[ndx % 3];
-                    });
-                    console.log(colors)
-                    const normalized = true;
-                    const colorAttrib = new THREE.BufferAttribute(colors, itemSize, normalized);
-                    geometry.setAttribute('color', colorAttrib);
-
-                    geometries.push(geometry);
+        const numChunks = 4;
+        for (let y = -1; y > ((-numChunks / 2) - 1); y--) {
+            for (let x = -numChunks / 2; x < numChunks / 2; x++) {
+                for (let z = -numChunks / 2; z < numChunks / 2; z++) {
+                    console.log(x, y, z)
+                    myWorker.postMessage([x, y, z])
                 }
             }
         }
     }
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
-        geometries, false);
-    const material = new THREE.MeshBasicMaterial({
-        vertexColors: true,
-    });
-    const mesh = new THREE.Mesh(mergedGeometry, material);
-    scene.add(mesh);
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    window.addEventListener('resize', onWindowResize);
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-        renderer.setSize(width, height, false);
-    }
-    return needResize;
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
 }
 
 
 function animate(time) {
     time *= 0.001;
-
-    if (resizeRendererToDisplaySize(renderer)) {
-        const canvas = renderer.domElement;
-        camera.aspect = canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();
-    }
 
     renderer.render(scene, camera);
 
