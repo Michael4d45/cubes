@@ -1,15 +1,15 @@
 const THREE = require('three');
 import { PointerLockControls } from './PointerLockControls'
-import { BufferGeometryUtils } from './BufferGeometryUtils'
 
 const canvas = document.querySelector('#c');
 const menu = document.querySelector('#menu');
 const play = document.querySelector('#play');
 
 let camera, scene, renderer, controls;
+const animate = false;
 
 init();
-animate();
+render();
 
 function init() {
 
@@ -44,39 +44,57 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     {
-        const material = new THREE.MeshBasicMaterial({
-            vertexColors: true,
-        });
+        var loader = new THREE.ObjectLoader();
 
-        const myWorker = new Worker('./js/loadCubes.js');
-        myWorker.onmessage = function (e) {
-            let geometries = [];
-            for (const elem of e.data) {
-                let geometry = new THREE.BoxGeometry;
-                let index = new THREE.Uint16BufferAttribute;
-                Object.assign(geometry, elem);
-                Object.assign(index, elem.index);
-                geometry.index = index;
-                geometries.push(geometry);
-            }
-            const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
-                geometries, false);
-            const mesh = new THREE.Mesh(mergedGeometry, material);
-            scene.add(mesh)
+        const loadCubes = new Worker('./js/loadCubes.js');
+        let count = 0;
+        loadCubes.onmessage = function (e) {
+            if (!e.data)
+                return;
+            count += e.data.geometries[0].data.index.array.length
+            console.log(count);
+
+            const mesh = loader.parse(e.data);
+            scene.add(mesh);
+
+            if (!animate)
+                render()
         }
 
-        const numChunks = 4;
-        for (let y = -1; y > ((-numChunks / 2) - 1); y--) {
-            for (let x = -numChunks / 2; x < numChunks / 2; x++) {
-                for (let z = -numChunks / 2; z < numChunks / 2; z++) {
-                    console.log(x, y, z)
-                    myWorker.postMessage([x, y, z])
+        const distance = 4;
+        const checkDistance = distance * distance;
+        for (let y = distance; y > -distance; y--) {
+            let x = 0;
+            let z = 0;
+            let incX = true;
+            let inc = 1;
+            let limit = 1;
+            while (Math.abs(x) <= distance || Math.abs(z) <= distance) {
+                if ((x * x + y * y + z * z) <= checkDistance)
+                    loadCubes.postMessage([x, y, z])
+
+                if (incX) {
+                    x += inc;
+                    if (Math.abs(x) >= limit)
+                        incX = false;
+                }
+                else {
+                    z += inc;
+                    if (Math.abs(z) >= limit) {
+                        incX = true;
+                        inc *= -1
+                        if (inc == 1)
+                            limit++
+                    }
                 }
             }
         }
     }
 
     window.addEventListener('resize', onWindowResize);
+
+    if (!animate)
+        controls.addEventListener('change', render);
 }
 
 function onWindowResize() {
@@ -87,10 +105,8 @@ function onWindowResize() {
 }
 
 
-function animate(time) {
-    time *= 0.001;
-
+function render() {
+    if (animate)
+        requestAnimationFrame(render)
     renderer.render(scene, camera);
-
-    requestAnimationFrame(animate);
 }
