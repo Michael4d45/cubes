@@ -1,66 +1,58 @@
-import {
-    BufferAttribute,
-    BoxGeometry,
-    Mesh,
-    MeshBasicMaterial
-} from 'three';
-import { BufferGeometryUtils } from './BufferGeometryUtils'
+import { ObjectLoader } from "three";
 
-const s = 0.5;
-const perChunk = 16;
+export function loadCubes(cubes) {
+    const loader = new ObjectLoader();
 
-const density = 0.01;
+    const loadCubes = new Worker('./js/loadCubesWorker.js');
+    let count = 0;
+    let t1, t2;
+    t1 = false;
+    let ave = 0;
+    loadCubes.onmessage = function (e) {
+        if (!e.data)
+            return;
 
-const box = new BoxGeometry(s, s, s);
+        if (!t1) {
+            t1 = performance.now();
+        }
+        else {
+            t2 = performance.now();
+            ave = Math.round(count / ((t2 - t1) / 1000));
+        }
+        count += e.data[1];
+        console.log(count, ave);
 
-const numVerts = box.getAttribute('position').count;
-const itemSize = 3;  // r, g, b
-const normalized = true;
+        const mesh = loader.parse(e.data[0]);
+        cubes.add(mesh);
+        //console.log(cubes);
+    }
 
-const material = new MeshBasicMaterial({
-    vertexColors: true,
-});
+    const distance = 4;
+    const checkDistance = distance * distance;
+    for (let y = distance; y >= -distance; y--) {
+        let x = 0;
+        let z = 0;
+        let incX = true;
+        let inc = 1;
+        let limit = 1;
+        while (Math.abs(x) <= distance || Math.abs(z) <= distance) {
+            if ((x * x + y * y + z * z) <= checkDistance)
+                loadCubes.postMessage([x, y, z])
 
-onmessage = function (e) {
-    const X = e.data[0];
-    const Y = e.data[1];
-    const Z = e.data[2];
-    let geometries = [];
-
-    for (let x = 0; x < perChunk; x++) {
-        for (let y = 0; y < perChunk; y++) {
-            for (let z = 0; z < perChunk; z++) {
-                if (Math.random() > (density)) continue;
-                const geometry = box.clone();
-                geometry.translate(x + (X * perChunk), y + (Y * perChunk), z + (Z * perChunk));
-
-                const rgb = [
-                    Math.random() * 255,
-                    Math.random() * 255,
-                    Math.random() * 255
-                ];
-
-                const colors = new Uint8Array(itemSize * numVerts);
-
-                // copy the color into the colors array for each vertex
-                colors.forEach((v, ndx) => {
-                    colors[ndx] = rgb[ndx % 3];
-                });
-
-                const colorAttrib = new BufferAttribute(colors, itemSize, normalized);
-                geometry.setAttribute('color', colorAttrib);
-
-                geometries.push(geometry);
+            if (incX) {
+                x += inc;
+                if (Math.abs(x) >= limit)
+                    incX = false;
+            }
+            else {
+                z += inc;
+                if (Math.abs(z) >= limit) {
+                    incX = true;
+                    inc *= -1
+                    if (inc == 1)
+                        limit++
+                }
             }
         }
     }
-    if (geometries.length == 0) {
-        postMessage(false);
-        return;
-    }
-
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
-
-    const mesh = new Mesh(mergedGeometry, material);
-    postMessage([mesh.toJSON(), geometries.length]);
 }

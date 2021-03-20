@@ -1,1141 +1,661 @@
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./node_modules/@babel/runtime/regenerator/index.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/@babel/runtime/regenerator/index.js ***!
-  \**********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/regenerator-runtime/runtime.js");
-
-
-/***/ }),
-
-/***/ "./resources/js/PointerLockControls.js":
+/***/ "./resources/js/BufferGeometryUtils.js":
 /*!*********************************************!*\
-  !*** ./resources/js/PointerLockControls.js ***!
+  !*** ./resources/js/BufferGeometryUtils.js ***!
   \*********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "PointerLockControls": () => (/* binding */ PointerLockControls)
+/* harmony export */   "BufferGeometryUtils": () => (/* binding */ BufferGeometryUtils)
 /* harmony export */ });
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 
+var BufferGeometryUtils = {
+  computeTangents: function computeTangents(geometry) {
+    geometry.computeTangents();
+    console.warn('THREE.BufferGeometryUtils: .computeTangents() has been removed. Use BufferGeometry.computeTangents() instead.');
+  },
 
-var PointerLockControls = function PointerLockControls(camera, domElement) {
-  if (domElement === undefined) {
-    console.warn('THREE.PointerLockControls: The second parameter "domElement" is now mandatory.');
-    domElement = document.body;
-  }
+  /**
+   * @param  {Array<BufferGeometry>} geometries
+   * @param  {Boolean} useGroups
+   * @return {BufferGeometry}
+   */
+  mergeBufferGeometries: function mergeBufferGeometries(geometries, useGroups) {
+    var isIndexed = geometries[0].index !== null;
+    var attributesUsed = new Set(Object.keys(geometries[0].attributes));
+    var morphAttributesUsed = new Set(Object.keys(geometries[0].morphAttributes));
+    var attributes = {};
+    var morphAttributes = {};
+    var morphTargetsRelative = geometries[0].morphTargetsRelative;
+    var mergedGeometry = new three__WEBPACK_IMPORTED_MODULE_0__.BufferGeometry();
+    var offset = 0;
 
-  this.domElement = domElement;
-  this.isLocked = false; // Set to constrain the pitch of the camera
-  // Range is 0 to Math.PI radians
+    for (var i = 0; i < geometries.length; ++i) {
+      var geometry = geometries[i];
+      var attributesCount = 0; // ensure that all geometries are indexed, or none
 
-  this.minPolarAngle = 0; // radians
-
-  this.maxPolarAngle = Math.PI; // radians
-  //
-  // internals
-  //
-
-  var scope = this;
-  var changeEvent = {
-    type: 'change'
-  };
-  var lockEvent = {
-    type: 'lock'
-  };
-  var unlockEvent = {
-    type: 'unlock'
-  };
-  var euler = new three__WEBPACK_IMPORTED_MODULE_0__.Euler(0, 0, 0, 'YXZ');
-  var PI_2 = Math.PI / 2;
-  var vec = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
-
-  function onMouseMove(event) {
-    if (scope.isLocked === false) return;
-    var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-    euler.setFromQuaternion(camera.quaternion);
-    euler.y -= movementX * 0.002;
-    euler.x -= movementY * 0.002;
-    euler.x = Math.max(PI_2 - scope.maxPolarAngle, Math.min(PI_2 - scope.minPolarAngle, euler.x));
-    camera.quaternion.setFromEuler(euler);
-    scope.dispatchEvent(changeEvent);
-  }
-
-  function onPointerlockChange() {
-    if (scope.domElement.ownerDocument.pointerLockElement === scope.domElement) {
-      scope.dispatchEvent(lockEvent);
-      scope.isLocked = true;
-    } else {
-      scope.dispatchEvent(unlockEvent);
-      scope.isLocked = false;
-    }
-  }
-
-  function onPointerlockError() {
-    console.error('THREE.PointerLockControls: Unable to use Pointer Lock API');
-  }
-
-  this.connect = function () {
-    scope.domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
-    scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange);
-    scope.domElement.ownerDocument.addEventListener('pointerlockerror', onPointerlockError);
-  };
-
-  this.disconnect = function () {
-    scope.domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
-    scope.domElement.ownerDocument.removeEventListener('pointerlockchange', onPointerlockChange);
-    scope.domElement.ownerDocument.removeEventListener('pointerlockerror', onPointerlockError);
-  };
-
-  this.dispose = function () {
-    this.disconnect();
-  };
-
-  this.getObject = function () {
-    // retaining this method for backward compatibility
-    return camera;
-  };
-
-  this.getDirection = function () {
-    var direction = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3(0, 0, -1);
-    return function (v) {
-      return v.copy(direction).applyQuaternion(camera.quaternion);
-    };
-  }();
-
-  this.moveForward = function (distance) {
-    // move forward parallel to the xz-plane
-    // assumes camera.up is y-up
-    vec.setFromMatrixColumn(camera.matrix, 0);
-    vec.crossVectors(camera.up, vec);
-    camera.position.addScaledVector(vec, distance);
-  };
-
-  this.moveRight = function (distance) {
-    vec.setFromMatrixColumn(camera.matrix, 0);
-    camera.position.addScaledVector(vec, distance);
-  };
-
-  this.lock = function () {
-    this.domElement.requestPointerLock();
-  };
-
-  this.unlock = function () {
-    scope.domElement.ownerDocument.exitPointerLock();
-  };
-
-  this.connect();
-};
-
-PointerLockControls.prototype = Object.create(three__WEBPACK_IMPORTED_MODULE_0__.EventDispatcher.prototype);
-PointerLockControls.prototype.constructor = PointerLockControls;
+      if (isIndexed !== (geometry.index !== null)) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure index attribute exists among all geometries, or in none of them.');
+        return null;
+      } // gather attributes, exit early if they're different
 
 
-/***/ }),
+      for (var name in geometry.attributes) {
+        if (!attributesUsed.has(name)) {
+          console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.');
+          return null;
+        }
 
-/***/ "./resources/js/VRButton.js":
-/*!**********************************!*\
-  !*** ./resources/js/VRButton.js ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "VRButton": () => (/* binding */ VRButton)
-/* harmony export */ });
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+        if (attributes[name] === undefined) attributes[name] = [];
+        attributes[name].push(geometry.attributes[name]);
+        attributesCount++;
+      } // ensure geometries have the same number of attributes
 
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+      if (attributesCount !== attributesUsed.size) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. Make sure all geometries have the same number of attributes.');
+        return null;
+      } // gather morph attributes, exit early if they're different
 
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var VRButton = /*#__PURE__*/function () {
-  function VRButton() {
-    _classCallCheck(this, VRButton);
-  }
-
-  _createClass(VRButton, null, [{
-    key: "createButton",
-    value: function () {
-      var _createButton = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(renderer, button) {
-        var showEnterVR;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                showEnterVR = function _showEnterVR()
-                /*device*/
-                {
-                  var currentSession = null;
-
-                  function onSessionStarted(_x3) {
-                    return _onSessionStarted.apply(this, arguments);
-                  }
-
-                  function _onSessionStarted() {
-                    _onSessionStarted = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee(session) {
-                      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
-                        while (1) {
-                          switch (_context.prev = _context.next) {
-                            case 0:
-                              session.addEventListener('end', onSessionEnded);
-                              _context.next = 3;
-                              return renderer.xr.setSession(session);
-
-                            case 3:
-                              button.textContent = 'EXIT VR';
-                              currentSession = session;
-
-                            case 5:
-                            case "end":
-                              return _context.stop();
-                          }
-                        }
-                      }, _callee);
-                    }));
-                    return _onSessionStarted.apply(this, arguments);
-                  }
-
-                  function onSessionEnded()
-                  /*event*/
-                  {
-                    currentSession.removeEventListener('end', onSessionEnded);
-                    button.textContent = 'ENTER VR';
-                    currentSession = null;
-                  }
-
-                  button.style.display = 'inline';
-
-                  button.onclick = function () {
-                    if (currentSession === null) {
-                      // WebXR's requestReferenceSpace only works if the corresponding feature
-                      // was requested at session creation time. For simplicity, just ask for
-                      // the interesting ones as optional features, but be aware that the
-                      // requestReferenceSpace call will fail if it turns out to be unavailable.
-                      // ('local' is always available for immersive sessions and doesn't need to
-                      // be requested separately.)
-                      var sessionInit = {
-                        optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking']
-                      };
-                      navigator.xr.requestSession('immersive-vr', sessionInit).then(onSessionStarted);
-                    } else {
-                      currentSession.end();
-                    }
-                  };
-                };
-
-                if (!('xr' in navigator)) {
-                  _context2.next = 7;
-                  break;
-                }
-
-                _context2.next = 4;
-                return navigator.xr.isSessionSupported('immersive-vr').then(function (supported) {
-                  supported ? showEnterVR() : button.remove();
-                  return supported;
-                });
-
-              case 4:
-                return _context2.abrupt("return", _context2.sent);
-
-              case 7:
-                button.remove();
-                return _context2.abrupt("return", false);
-
-              case 9:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2);
-      }));
-
-      function createButton(_x, _x2) {
-        return _createButton.apply(this, arguments);
+      if (morphTargetsRelative !== geometry.morphTargetsRelative) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. .morphTargetsRelative must be consistent throughout all geometries.');
+        return null;
       }
 
-      return createButton;
-    }()
-  }]);
+      for (var name in geometry.morphAttributes) {
+        if (!morphAttributesUsed.has(name)) {
+          console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '.  .morphAttributes must be consistent throughout all geometries.');
+          return null;
+        }
 
-  return VRButton;
-}();
+        if (morphAttributes[name] === undefined) morphAttributes[name] = [];
+        morphAttributes[name].push(geometry.morphAttributes[name]);
+      } // gather .userData
 
 
+      mergedGeometry.userData.mergedUserData = mergedGeometry.userData.mergedUserData || [];
+      mergedGeometry.userData.mergedUserData.push(geometry.userData);
 
-/***/ }),
+      if (useGroups) {
+        var count;
 
-/***/ "./resources/js/controls.js":
-/*!**********************************!*\
-  !*** ./resources/js/controls.js ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+        if (isIndexed) {
+          count = geometry.index.count;
+        } else if (geometry.attributes.position !== undefined) {
+          count = geometry.attributes.position.count;
+        } else {
+          console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. The geometry must have either an index or a position attribute');
+          return null;
+        }
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getControls": () => (/* binding */ getControls)
-/* harmony export */ });
-/* harmony import */ var _PointerLockControls__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PointerLockControls */ "./resources/js/PointerLockControls.js");
+        mergedGeometry.addGroup(offset, count, i);
+        offset += count;
+      }
+    } // merge indices
 
-var menu = document.querySelector('#menu');
-var play = document.querySelector('#play');
-var controls;
-function getControls(camera) {
-  controls = new _PointerLockControls__WEBPACK_IMPORTED_MODULE_0__.PointerLockControls(camera, document.body);
-  play.addEventListener('click', function () {
-    controls.lock();
-  });
-  controls.addEventListener('lock', function () {
-    menu.style.display = 'none';
-  });
-  controls.addEventListener('unlock', function () {
-    menu.style.display = '';
-  });
-  return controls;
-}
 
-/***/ }),
+    if (isIndexed) {
+      var indexOffset = 0;
+      var mergedIndex = [];
 
-/***/ "./resources/js/loadCubes.js":
-/*!***********************************!*\
-  !*** ./resources/js/loadCubes.js ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+      for (var i = 0; i < geometries.length; ++i) {
+        var index = geometries[i].index;
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "loadCubes": () => (/* binding */ loadCubes)
-/* harmony export */ });
-/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+        for (var j = 0; j < index.count; ++j) {
+          mergedIndex.push(index.getX(j) + indexOffset);
+        }
 
-function loadCubes(cubes) {
-  var loader = new three__WEBPACK_IMPORTED_MODULE_0__.ObjectLoader();
-  var loadCubes = new Worker('./js/loadCubesWorker.js');
-  var count = 0;
-  var t1, t2;
-  t1 = false;
-  var ave = 0;
+        indexOffset += geometries[i].attributes.position.count;
+      }
 
-  loadCubes.onmessage = function (e) {
-    if (!e.data) return;
+      mergedGeometry.setIndex(mergedIndex);
+    } // merge attributes
 
-    if (!t1) {
-      t1 = performance.now();
-    } else {
-      t2 = performance.now();
-      ave = Math.round(count / ((t2 - t1) / 1000));
+
+    for (var name in attributes) {
+      var mergedAttribute = this.mergeBufferAttributes(attributes[name]);
+
+      if (!mergedAttribute) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' attribute.');
+        return null;
+      }
+
+      mergedGeometry.setAttribute(name, mergedAttribute);
+    } // merge morph attributes
+
+
+    for (var name in morphAttributes) {
+      var numMorphTargets = morphAttributes[name][0].length;
+      if (numMorphTargets === 0) break;
+      mergedGeometry.morphAttributes = mergedGeometry.morphAttributes || {};
+      mergedGeometry.morphAttributes[name] = [];
+
+      for (var i = 0; i < numMorphTargets; ++i) {
+        var morphAttributesToMerge = [];
+
+        for (var j = 0; j < morphAttributes[name].length; ++j) {
+          morphAttributesToMerge.push(morphAttributes[name][j][i]);
+        }
+
+        var mergedMorphAttribute = this.mergeBufferAttributes(morphAttributesToMerge);
+
+        if (!mergedMorphAttribute) {
+          console.error('THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' morphAttribute.');
+          return null;
+        }
+
+        mergedGeometry.morphAttributes[name].push(mergedMorphAttribute);
+      }
     }
 
-    count += e.data[1];
-    console.log(count, ave);
-    var mesh = loader.parse(e.data[0]);
-    cubes.add(mesh); //console.log(cubes);
-  };
+    return mergedGeometry;
+  },
 
-  var distance = 4;
-  var checkDistance = distance * distance;
+  /**
+   * @param {Array<BufferAttribute>} attributes
+   * @return {BufferAttribute}
+   */
+  mergeBufferAttributes: function mergeBufferAttributes(attributes) {
+    var TypedArray;
+    var itemSize;
+    var normalized;
+    var arrayLength = 0;
 
-  for (var y = distance; y >= -distance; y--) {
-    var x = 0;
-    var z = 0;
-    var incX = true;
-    var inc = 1;
-    var limit = 1;
+    for (var i = 0; i < attributes.length; ++i) {
+      var attribute = attributes[i];
 
-    while (Math.abs(x) <= distance || Math.abs(z) <= distance) {
-      if (x * x + y * y + z * z <= checkDistance) loadCubes.postMessage([x, y, z]);
+      if (attribute.isInterleavedBufferAttribute) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. InterleavedBufferAttributes are not supported.');
+        return null;
+      }
 
-      if (incX) {
-        x += inc;
-        if (Math.abs(x) >= limit) incX = false;
+      if (TypedArray === undefined) TypedArray = attribute.array.constructor;
+
+      if (TypedArray !== attribute.array.constructor) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.array must be of consistent array types across matching attributes.');
+        return null;
+      }
+
+      if (itemSize === undefined) itemSize = attribute.itemSize;
+
+      if (itemSize !== attribute.itemSize) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.itemSize must be consistent across matching attributes.');
+        return null;
+      }
+
+      if (normalized === undefined) normalized = attribute.normalized;
+
+      if (normalized !== attribute.normalized) {
+        console.error('THREE.BufferGeometryUtils: .mergeBufferAttributes() failed. BufferAttribute.normalized must be consistent across matching attributes.');
+        return null;
+      }
+
+      arrayLength += attribute.array.length;
+    }
+
+    var array = new TypedArray(arrayLength);
+    var offset = 0;
+
+    for (var i = 0; i < attributes.length; ++i) {
+      array.set(attributes[i].array, offset);
+      offset += attributes[i].array.length;
+    }
+
+    return new three__WEBPACK_IMPORTED_MODULE_0__.BufferAttribute(array, itemSize, normalized);
+  },
+
+  /**
+   * @param {Array<BufferAttribute>} attributes
+   * @return {Array<InterleavedBufferAttribute>}
+   */
+  interleaveAttributes: function interleaveAttributes(attributes) {
+    // Interleaves the provided attributes into an InterleavedBuffer and returns
+    // a set of InterleavedBufferAttributes for each attribute
+    var TypedArray;
+    var arrayLength = 0;
+    var stride = 0; // calculate the the length and type of the interleavedBuffer
+
+    for (var i = 0, l = attributes.length; i < l; ++i) {
+      var attribute = attributes[i];
+      if (TypedArray === undefined) TypedArray = attribute.array.constructor;
+
+      if (TypedArray !== attribute.array.constructor) {
+        console.error('AttributeBuffers of different types cannot be interleaved');
+        return null;
+      }
+
+      arrayLength += attribute.array.length;
+      stride += attribute.itemSize;
+    } // Create the set of buffer attributes
+
+
+    var interleavedBuffer = new three__WEBPACK_IMPORTED_MODULE_0__.InterleavedBuffer(new TypedArray(arrayLength), stride);
+    var offset = 0;
+    var res = [];
+    var getters = ['getX', 'getY', 'getZ', 'getW'];
+    var setters = ['setX', 'setY', 'setZ', 'setW'];
+
+    for (var j = 0, l = attributes.length; j < l; j++) {
+      var attribute = attributes[j];
+      var itemSize = attribute.itemSize;
+      var count = attribute.count;
+      var iba = new three__WEBPACK_IMPORTED_MODULE_0__.InterleavedBufferAttribute(interleavedBuffer, itemSize, offset, attribute.normalized);
+      res.push(iba);
+      offset += itemSize; // Move the data for each attribute into the new interleavedBuffer
+      // at the appropriate offset
+
+      for (var c = 0; c < count; c++) {
+        for (var k = 0; k < itemSize; k++) {
+          iba[setters[k]](c, attribute[getters[k]](c));
+        }
+      }
+    }
+
+    return res;
+  },
+
+  /**
+   * @param {Array<BufferGeometry>} geometry
+   * @return {number}
+   */
+  estimateBytesUsed: function estimateBytesUsed(geometry) {
+    // Return the estimated memory used by this geometry in bytes
+    // Calculate using itemSize, count, and BYTES_PER_ELEMENT to account
+    // for InterleavedBufferAttributes.
+    var mem = 0;
+
+    for (var name in geometry.attributes) {
+      var attr = geometry.getAttribute(name);
+      mem += attr.count * attr.itemSize * attr.array.BYTES_PER_ELEMENT;
+    }
+
+    var indices = geometry.getIndex();
+    mem += indices ? indices.count * indices.itemSize * indices.array.BYTES_PER_ELEMENT : 0;
+    return mem;
+  },
+
+  /**
+   * @param {BufferGeometry} geometry
+   * @param {number} tolerance
+   * @return {BufferGeometry>}
+   */
+  mergeVertices: function mergeVertices(geometry) {
+    var tolerance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e-4;
+    tolerance = Math.max(tolerance, Number.EPSILON); // Generate an index buffer if the geometry doesn't have one, or optimize it
+    // if it's already available.
+
+    var hashToIndex = {};
+    var indices = geometry.getIndex();
+    var positions = geometry.getAttribute('position');
+    var vertexCount = indices ? indices.count : positions.count; // next value for triangle indices
+
+    var nextIndex = 0; // attributes and new attribute arrays
+
+    var attributeNames = Object.keys(geometry.attributes);
+    var attrArrays = {};
+    var morphAttrsArrays = {};
+    var newIndices = [];
+    var getters = ['getX', 'getY', 'getZ', 'getW']; // initialize the arrays
+
+    for (var i = 0, l = attributeNames.length; i < l; i++) {
+      var name = attributeNames[i];
+      attrArrays[name] = [];
+      var morphAttr = geometry.morphAttributes[name];
+
+      if (morphAttr) {
+        morphAttrsArrays[name] = new Array(morphAttr.length).fill().map(function () {
+          return [];
+        });
+      }
+    } // convert the error tolerance to an amount of decimal places to truncate to
+
+
+    var decimalShift = Math.log10(1 / tolerance);
+    var shiftMultiplier = Math.pow(10, decimalShift);
+
+    for (var i = 0; i < vertexCount; i++) {
+      var index = indices ? indices.getX(i) : i; // Generate a hash for the vertex attributes at the current index 'i'
+
+      var hash = '';
+
+      for (var j = 0, l = attributeNames.length; j < l; j++) {
+        var name = attributeNames[j];
+        var attribute = geometry.getAttribute(name);
+        var itemSize = attribute.itemSize;
+
+        for (var k = 0; k < itemSize; k++) {
+          // double tilde truncates the decimal value
+          hash += "".concat(~~(attribute[getters[k]](index) * shiftMultiplier), ",");
+        }
+      } // Add another reference to the vertex if it's already
+      // used by another index
+
+
+      if (hash in hashToIndex) {
+        newIndices.push(hashToIndex[hash]);
       } else {
-        z += inc;
+        // copy data to the new index in the attribute arrays
+        for (var j = 0, l = attributeNames.length; j < l; j++) {
+          var name = attributeNames[j];
+          var attribute = geometry.getAttribute(name);
+          var morphAttr = geometry.morphAttributes[name];
+          var itemSize = attribute.itemSize;
+          var newarray = attrArrays[name];
+          var newMorphArrays = morphAttrsArrays[name];
 
-        if (Math.abs(z) >= limit) {
-          incX = true;
-          inc *= -1;
-          if (inc == 1) limit++;
+          for (var k = 0; k < itemSize; k++) {
+            var getterFunc = getters[k];
+            newarray.push(attribute[getterFunc](index));
+
+            if (morphAttr) {
+              for (var m = 0, ml = morphAttr.length; m < ml; m++) {
+                newMorphArrays[m].push(morphAttr[m][getterFunc](index));
+              }
+            }
+          }
+        }
+
+        hashToIndex[hash] = nextIndex;
+        newIndices.push(nextIndex);
+        nextIndex++;
+      }
+    } // Generate typed arrays from new attribute arrays and update
+    // the attributeBuffers
+
+
+    var result = geometry.clone();
+
+    for (var i = 0, l = attributeNames.length; i < l; i++) {
+      var name = attributeNames[i];
+      var oldAttribute = geometry.getAttribute(name);
+      var buffer = new oldAttribute.array.constructor(attrArrays[name]);
+      var attribute = new three__WEBPACK_IMPORTED_MODULE_0__.BufferAttribute(buffer, oldAttribute.itemSize, oldAttribute.normalized);
+      result.setAttribute(name, attribute); // Update the attribute arrays
+
+      if (name in morphAttrsArrays) {
+        for (var j = 0; j < morphAttrsArrays[name].length; j++) {
+          var oldMorphAttribute = geometry.morphAttributes[name][j];
+          var buffer = new oldMorphAttribute.array.constructor(morphAttrsArrays[name][j]);
+          var morphAttribute = new three__WEBPACK_IMPORTED_MODULE_0__.BufferAttribute(buffer, oldMorphAttribute.itemSize, oldMorphAttribute.normalized);
+          result.morphAttributes[name][j] = morphAttribute;
         }
       }
+    } // indices
+
+
+    result.setIndex(newIndices);
+    return result;
+  },
+
+  /**
+   * @param {BufferGeometry} geometry
+   * @param {number} drawMode
+   * @return {BufferGeometry>}
+   */
+  toTrianglesDrawMode: function toTrianglesDrawMode(geometry, drawMode) {
+    if (drawMode === three__WEBPACK_IMPORTED_MODULE_0__.TrianglesDrawMode) {
+      console.warn('THREE.BufferGeometryUtils.toTrianglesDrawMode(): Geometry already defined as triangles.');
+      return geometry;
     }
-  }
-}
 
-/***/ }),
+    if (drawMode === three__WEBPACK_IMPORTED_MODULE_0__.TriangleFanDrawMode || drawMode === three__WEBPACK_IMPORTED_MODULE_0__.TriangleStripDrawMode) {
+      var index = geometry.getIndex(); // generate index if not present
 
-/***/ "./node_modules/regenerator-runtime/runtime.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/regenerator-runtime/runtime.js ***!
-  \*****************************************************/
-/***/ ((module) => {
+      if (index === null) {
+        var indices = [];
+        var position = geometry.getAttribute('position');
 
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
+        if (position !== undefined) {
+          for (var i = 0; i < position.count; i++) {
+            indices.push(i);
+          }
 
-var runtime = (function (exports) {
-  "use strict";
+          geometry.setIndex(indices);
+          index = geometry.getIndex();
+        } else {
+          console.error('THREE.BufferGeometryUtils.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.');
+          return geometry;
+        }
+      } //
 
-  var Op = Object.prototype;
-  var hasOwn = Op.hasOwnProperty;
-  var undefined; // More compressible than void 0.
-  var $Symbol = typeof Symbol === "function" ? Symbol : {};
-  var iteratorSymbol = $Symbol.iterator || "@@iterator";
-  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
 
-  function define(obj, key, value) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-    return obj[key];
-  }
-  try {
-    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-    define({}, "");
-  } catch (err) {
-    define = function(obj, key, value) {
-      return obj[key] = value;
-    };
-  }
+      var numberOfTriangles = index.count - 2;
+      var newIndices = [];
 
-  function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-    var generator = Object.create(protoGenerator.prototype);
-    var context = new Context(tryLocsList || []);
-
-    // The ._invoke method unifies the implementations of the .next,
-    // .throw, and .return methods.
-    generator._invoke = makeInvokeMethod(innerFn, self, context);
-
-    return generator;
-  }
-  exports.wrap = wrap;
-
-  // Try/catch helper to minimize deoptimizations. Returns a completion
-  // record like context.tryEntries[i].completion. This interface could
-  // have been (and was previously) designed to take a closure to be
-  // invoked without arguments, but in all the cases we care about we
-  // already have an existing method we want to call, so there's no need
-  // to create a new function object. We can even get away with assuming
-  // the method takes exactly one argument, since that happens to be true
-  // in every case, so we don't have to touch the arguments object. The
-  // only additional allocation required is the completion record, which
-  // has a stable shape and so hopefully should be cheap to allocate.
-  function tryCatch(fn, obj, arg) {
-    try {
-      return { type: "normal", arg: fn.call(obj, arg) };
-    } catch (err) {
-      return { type: "throw", arg: err };
-    }
-  }
-
-  var GenStateSuspendedStart = "suspendedStart";
-  var GenStateSuspendedYield = "suspendedYield";
-  var GenStateExecuting = "executing";
-  var GenStateCompleted = "completed";
-
-  // Returning this object from the innerFn has the same effect as
-  // breaking out of the dispatch switch statement.
-  var ContinueSentinel = {};
-
-  // Dummy constructor functions that we use as the .constructor and
-  // .constructor.prototype properties for functions that return Generator
-  // objects. For full spec compliance, you may wish to configure your
-  // minifier not to mangle the names of these two functions.
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-
-  // This is a polyfill for %IteratorPrototype% for environments that
-  // don't natively support it.
-  var IteratorPrototype = {};
-  IteratorPrototype[iteratorSymbol] = function () {
-    return this;
-  };
-
-  var getProto = Object.getPrototypeOf;
-  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-  if (NativeIteratorPrototype &&
-      NativeIteratorPrototype !== Op &&
-      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
-  }
-
-  var Gp = GeneratorFunctionPrototype.prototype =
-    Generator.prototype = Object.create(IteratorPrototype);
-  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunction.displayName = define(
-    GeneratorFunctionPrototype,
-    toStringTagSymbol,
-    "GeneratorFunction"
-  );
-
-  // Helper for defining the .next, .throw, and .return methods of the
-  // Iterator interface in terms of a single ._invoke method.
-  function defineIteratorMethods(prototype) {
-    ["next", "throw", "return"].forEach(function(method) {
-      define(prototype, method, function(arg) {
-        return this._invoke(method, arg);
-      });
-    });
-  }
-
-  exports.isGeneratorFunction = function(genFun) {
-    var ctor = typeof genFun === "function" && genFun.constructor;
-    return ctor
-      ? ctor === GeneratorFunction ||
-        // For the native GeneratorFunction constructor, the best we can
-        // do is to check its .name property.
-        (ctor.displayName || ctor.name) === "GeneratorFunction"
-      : false;
-  };
-
-  exports.mark = function(genFun) {
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-    } else {
-      genFun.__proto__ = GeneratorFunctionPrototype;
-      define(genFun, toStringTagSymbol, "GeneratorFunction");
-    }
-    genFun.prototype = Object.create(Gp);
-    return genFun;
-  };
-
-  // Within the body of any async function, `await x` is transformed to
-  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
-  // meant to be awaited.
-  exports.awrap = function(arg) {
-    return { __await: arg };
-  };
-
-  function AsyncIterator(generator, PromiseImpl) {
-    function invoke(method, arg, resolve, reject) {
-      var record = tryCatch(generator[method], generator, arg);
-      if (record.type === "throw") {
-        reject(record.arg);
+      if (drawMode === three__WEBPACK_IMPORTED_MODULE_0__.TriangleFanDrawMode) {
+        // gl.TRIANGLE_FAN
+        for (var i = 1; i <= numberOfTriangles; i++) {
+          newIndices.push(index.getX(0));
+          newIndices.push(index.getX(i));
+          newIndices.push(index.getX(i + 1));
+        }
       } else {
-        var result = record.arg;
-        var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return PromiseImpl.resolve(value.__await).then(function(value) {
-            invoke("next", value, resolve, reject);
-          }, function(err) {
-            invoke("throw", err, resolve, reject);
-          });
-        }
-
-        return PromiseImpl.resolve(value).then(function(unwrapped) {
-          // When a yielded Promise is resolved, its final value becomes
-          // the .value of the Promise<{value,done}> result for the
-          // current iteration.
-          result.value = unwrapped;
-          resolve(result);
-        }, function(error) {
-          // If a rejected Promise was yielded, throw the rejection back
-          // into the async generator function so it can be handled there.
-          return invoke("throw", error, resolve, reject);
-        });
-      }
-    }
-
-    var previousPromise;
-
-    function enqueue(method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new PromiseImpl(function(resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
-      }
-
-      return previousPromise =
-        // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(
-          callInvokeWithMethodAndArg,
-          // Avoid propagating failures to Promises returned by later
-          // invocations of the iterator.
-          callInvokeWithMethodAndArg
-        ) : callInvokeWithMethodAndArg();
-    }
-
-    // Define the unified helper method that is used to implement .next,
-    // .throw, and .return (see defineIteratorMethods).
-    this._invoke = enqueue;
-  }
-
-  defineIteratorMethods(AsyncIterator.prototype);
-  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-    return this;
-  };
-  exports.AsyncIterator = AsyncIterator;
-
-  // Note that simple async functions are implemented on top of
-  // AsyncIterator objects; they just return a Promise for the value of
-  // the final result produced by the iterator.
-  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-    if (PromiseImpl === void 0) PromiseImpl = Promise;
-
-    var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList),
-      PromiseImpl
-    );
-
-    return exports.isGeneratorFunction(outerFn)
-      ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function(result) {
-          return result.done ? result.value : iter.next();
-        });
-  };
-
-  function makeInvokeMethod(innerFn, self, context) {
-    var state = GenStateSuspendedStart;
-
-    return function invoke(method, arg) {
-      if (state === GenStateExecuting) {
-        throw new Error("Generator is already running");
-      }
-
-      if (state === GenStateCompleted) {
-        if (method === "throw") {
-          throw arg;
-        }
-
-        // Be forgiving, per 25.3.3.3.3 of the spec:
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-        return doneResult();
-      }
-
-      context.method = method;
-      context.arg = arg;
-
-      while (true) {
-        var delegate = context.delegate;
-        if (delegate) {
-          var delegateResult = maybeInvokeDelegate(delegate, context);
-          if (delegateResult) {
-            if (delegateResult === ContinueSentinel) continue;
-            return delegateResult;
-          }
-        }
-
-        if (context.method === "next") {
-          // Setting context._sent for legacy support of Babel's
-          // function.sent implementation.
-          context.sent = context._sent = context.arg;
-
-        } else if (context.method === "throw") {
-          if (state === GenStateSuspendedStart) {
-            state = GenStateCompleted;
-            throw context.arg;
-          }
-
-          context.dispatchException(context.arg);
-
-        } else if (context.method === "return") {
-          context.abrupt("return", context.arg);
-        }
-
-        state = GenStateExecuting;
-
-        var record = tryCatch(innerFn, self, context);
-        if (record.type === "normal") {
-          // If an exception is thrown from innerFn, we leave state ===
-          // GenStateExecuting and loop back for another invocation.
-          state = context.done
-            ? GenStateCompleted
-            : GenStateSuspendedYield;
-
-          if (record.arg === ContinueSentinel) {
-            continue;
-          }
-
-          return {
-            value: record.arg,
-            done: context.done
-          };
-
-        } else if (record.type === "throw") {
-          state = GenStateCompleted;
-          // Dispatch the exception by looping back around to the
-          // context.dispatchException(context.arg) call above.
-          context.method = "throw";
-          context.arg = record.arg;
-        }
-      }
-    };
-  }
-
-  // Call delegate.iterator[context.method](context.arg) and handle the
-  // result, either by returning a { value, done } result from the
-  // delegate iterator, or by modifying context.method and context.arg,
-  // setting context.delegate to null, and returning the ContinueSentinel.
-  function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (method === undefined) {
-      // A .throw or .return when the delegate iterator has no .throw
-      // method always terminates the yield* loop.
-      context.delegate = null;
-
-      if (context.method === "throw") {
-        // Note: ["return"] must be used for ES3 parsing compatibility.
-        if (delegate.iterator["return"]) {
-          // If the delegate iterator has a return method, give it a
-          // chance to clean up.
-          context.method = "return";
-          context.arg = undefined;
-          maybeInvokeDelegate(delegate, context);
-
-          if (context.method === "throw") {
-            // If maybeInvokeDelegate(context) changed context.method from
-            // "return" to "throw", let that override the TypeError below.
-            return ContinueSentinel;
-          }
-        }
-
-        context.method = "throw";
-        context.arg = new TypeError(
-          "The iterator does not provide a 'throw' method");
-      }
-
-      return ContinueSentinel;
-    }
-
-    var record = tryCatch(method, delegate.iterator, context.arg);
-
-    if (record.type === "throw") {
-      context.method = "throw";
-      context.arg = record.arg;
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    var info = record.arg;
-
-    if (! info) {
-      context.method = "throw";
-      context.arg = new TypeError("iterator result is not an object");
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    if (info.done) {
-      // Assign the result of the finished delegate to the temporary
-      // variable specified by delegate.resultName (see delegateYield).
-      context[delegate.resultName] = info.value;
-
-      // Resume execution at the desired location (see delegateYield).
-      context.next = delegate.nextLoc;
-
-      // If context.method was "throw" but the delegate handled the
-      // exception, let the outer generator proceed normally. If
-      // context.method was "next", forget context.arg since it has been
-      // "consumed" by the delegate iterator. If context.method was
-      // "return", allow the original .return call to continue in the
-      // outer generator.
-      if (context.method !== "return") {
-        context.method = "next";
-        context.arg = undefined;
-      }
-
-    } else {
-      // Re-yield the result returned by the delegate method.
-      return info;
-    }
-
-    // The delegate iterator is finished, so forget it and continue with
-    // the outer generator.
-    context.delegate = null;
-    return ContinueSentinel;
-  }
-
-  // Define Generator.prototype.{next,throw,return} in terms of the
-  // unified ._invoke helper method.
-  defineIteratorMethods(Gp);
-
-  define(Gp, toStringTagSymbol, "Generator");
-
-  // A Generator should always return itself as the iterator object when the
-  // @@iterator function is called on it. Some browsers' implementations of the
-  // iterator prototype chain incorrectly implement this, causing the Generator
-  // object to not be returned from this call. This ensures that doesn't happen.
-  // See https://github.com/facebook/regenerator/issues/274 for more details.
-  Gp[iteratorSymbol] = function() {
-    return this;
-  };
-
-  Gp.toString = function() {
-    return "[object Generator]";
-  };
-
-  function pushTryEntry(locs) {
-    var entry = { tryLoc: locs[0] };
-
-    if (1 in locs) {
-      entry.catchLoc = locs[1];
-    }
-
-    if (2 in locs) {
-      entry.finallyLoc = locs[2];
-      entry.afterLoc = locs[3];
-    }
-
-    this.tryEntries.push(entry);
-  }
-
-  function resetTryEntry(entry) {
-    var record = entry.completion || {};
-    record.type = "normal";
-    delete record.arg;
-    entry.completion = record;
-  }
-
-  function Context(tryLocsList) {
-    // The root entry object (effectively a try statement without a catch
-    // or a finally block) gives us a place to store values thrown from
-    // locations where there is no enclosing try statement.
-    this.tryEntries = [{ tryLoc: "root" }];
-    tryLocsList.forEach(pushTryEntry, this);
-    this.reset(true);
-  }
-
-  exports.keys = function(object) {
-    var keys = [];
-    for (var key in object) {
-      keys.push(key);
-    }
-    keys.reverse();
-
-    // Rather than returning an object with a next method, we keep
-    // things simple and return the next function itself.
-    return function next() {
-      while (keys.length) {
-        var key = keys.pop();
-        if (key in object) {
-          next.value = key;
-          next.done = false;
-          return next;
-        }
-      }
-
-      // To avoid creating an additional object, we just hang the .value
-      // and .done properties off the next function object itself. This
-      // also ensures that the minifier will not anonymize the function.
-      next.done = true;
-      return next;
-    };
-  };
-
-  function values(iterable) {
-    if (iterable) {
-      var iteratorMethod = iterable[iteratorSymbol];
-      if (iteratorMethod) {
-        return iteratorMethod.call(iterable);
-      }
-
-      if (typeof iterable.next === "function") {
-        return iterable;
-      }
-
-      if (!isNaN(iterable.length)) {
-        var i = -1, next = function next() {
-          while (++i < iterable.length) {
-            if (hasOwn.call(iterable, i)) {
-              next.value = iterable[i];
-              next.done = false;
-              return next;
-            }
-          }
-
-          next.value = undefined;
-          next.done = true;
-
-          return next;
-        };
-
-        return next.next = next;
-      }
-    }
-
-    // Return an iterator with no values.
-    return { next: doneResult };
-  }
-  exports.values = values;
-
-  function doneResult() {
-    return { value: undefined, done: true };
-  }
-
-  Context.prototype = {
-    constructor: Context,
-
-    reset: function(skipTempReset) {
-      this.prev = 0;
-      this.next = 0;
-      // Resetting context._sent for legacy support of Babel's
-      // function.sent implementation.
-      this.sent = this._sent = undefined;
-      this.done = false;
-      this.delegate = null;
-
-      this.method = "next";
-      this.arg = undefined;
-
-      this.tryEntries.forEach(resetTryEntry);
-
-      if (!skipTempReset) {
-        for (var name in this) {
-          // Not sure about the optimal order of these conditions:
-          if (name.charAt(0) === "t" &&
-              hasOwn.call(this, name) &&
-              !isNaN(+name.slice(1))) {
-            this[name] = undefined;
-          }
-        }
-      }
-    },
-
-    stop: function() {
-      this.done = true;
-
-      var rootEntry = this.tryEntries[0];
-      var rootRecord = rootEntry.completion;
-      if (rootRecord.type === "throw") {
-        throw rootRecord.arg;
-      }
-
-      return this.rval;
-    },
-
-    dispatchException: function(exception) {
-      if (this.done) {
-        throw exception;
-      }
-
-      var context = this;
-      function handle(loc, caught) {
-        record.type = "throw";
-        record.arg = exception;
-        context.next = loc;
-
-        if (caught) {
-          // If the dispatched exception was caught by a catch block,
-          // then let that catch block handle the exception normally.
-          context.method = "next";
-          context.arg = undefined;
-        }
-
-        return !! caught;
-      }
-
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        var record = entry.completion;
-
-        if (entry.tryLoc === "root") {
-          // Exception thrown outside of any try block that could handle
-          // it, so set the completion value of the entire function to
-          // throw the exception.
-          return handle("end");
-        }
-
-        if (entry.tryLoc <= this.prev) {
-          var hasCatch = hasOwn.call(entry, "catchLoc");
-          var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-          if (hasCatch && hasFinally) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            } else if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else if (hasCatch) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            }
-
-          } else if (hasFinally) {
-            if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
+        // gl.TRIANGLE_STRIP
+        for (var i = 0; i < numberOfTriangles; i++) {
+          if (i % 2 === 0) {
+            newIndices.push(index.getX(i));
+            newIndices.push(index.getX(i + 1));
+            newIndices.push(index.getX(i + 2));
           } else {
-            throw new Error("try statement without catch or finally");
+            newIndices.push(index.getX(i + 2));
+            newIndices.push(index.getX(i + 1));
+            newIndices.push(index.getX(i));
           }
         }
       }
-    },
 
-    abrupt: function(type, arg) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc <= this.prev &&
-            hasOwn.call(entry, "finallyLoc") &&
-            this.prev < entry.finallyLoc) {
-          var finallyEntry = entry;
-          break;
-        }
-      }
+      if (newIndices.length / 3 !== numberOfTriangles) {
+        console.error('THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unable to generate correct amount of triangles.');
+      } // build final geometry
 
-      if (finallyEntry &&
-          (type === "break" ||
-           type === "continue") &&
-          finallyEntry.tryLoc <= arg &&
-          arg <= finallyEntry.finallyLoc) {
-        // Ignore the finally entry if control is not jumping to a
-        // location outside the try/catch block.
-        finallyEntry = null;
-      }
 
-      var record = finallyEntry ? finallyEntry.completion : {};
-      record.type = type;
-      record.arg = arg;
-
-      if (finallyEntry) {
-        this.method = "next";
-        this.next = finallyEntry.finallyLoc;
-        return ContinueSentinel;
-      }
-
-      return this.complete(record);
-    },
-
-    complete: function(record, afterLoc) {
-      if (record.type === "throw") {
-        throw record.arg;
-      }
-
-      if (record.type === "break" ||
-          record.type === "continue") {
-        this.next = record.arg;
-      } else if (record.type === "return") {
-        this.rval = this.arg = record.arg;
-        this.method = "return";
-        this.next = "end";
-      } else if (record.type === "normal" && afterLoc) {
-        this.next = afterLoc;
-      }
-
-      return ContinueSentinel;
-    },
-
-    finish: function(finallyLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.finallyLoc === finallyLoc) {
-          this.complete(entry.completion, entry.afterLoc);
-          resetTryEntry(entry);
-          return ContinueSentinel;
-        }
-      }
-    },
-
-    "catch": function(tryLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc === tryLoc) {
-          var record = entry.completion;
-          if (record.type === "throw") {
-            var thrown = record.arg;
-            resetTryEntry(entry);
-          }
-          return thrown;
-        }
-      }
-
-      // The context.catch method must only be called with a location
-      // argument that corresponds to a known catch block.
-      throw new Error("illegal catch attempt");
-    },
-
-    delegateYield: function(iterable, resultName, nextLoc) {
-      this.delegate = {
-        iterator: values(iterable),
-        resultName: resultName,
-        nextLoc: nextLoc
-      };
-
-      if (this.method === "next") {
-        // Deliberately forget the last sent value so that we don't
-        // accidentally pass it on to the delegate.
-        this.arg = undefined;
-      }
-
-      return ContinueSentinel;
+      var newGeometry = geometry.clone();
+      newGeometry.setIndex(newIndices);
+      newGeometry.clearGroups();
+      return newGeometry;
+    } else {
+      console.error('THREE.BufferGeometryUtils.toTrianglesDrawMode(): Unknown draw mode:', drawMode);
+      return geometry;
     }
-  };
+  },
 
-  // Regardless of whether this script is executing as a CommonJS module
-  // or not, return the runtime object so that we can declare the variable
-  // regeneratorRuntime in the outer scope, which allows this module to be
-  // injected easily by `bin/regenerator --include-runtime script.js`.
-  return exports;
+  /**
+   * Calculates the morphed attributes of a morphed/skinned BufferGeometry.
+   * Helpful for Raytracing or Decals.
+   * @param {Mesh | Line | Points} object An instance of Mesh, Line or Points.
+   * @return {Object} An Object with original position/normal attributes and morphed ones.
+   */
+  computeMorphedAttributes: function computeMorphedAttributes(object) {
+    if (object.geometry.isBufferGeometry !== true) {
+      console.error('THREE.BufferGeometryUtils: Geometry is not of type BufferGeometry.');
+      return null;
+    }
 
-}(
-  // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-   true ? module.exports : 0
-));
+    var _vA = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
 
-try {
-  regeneratorRuntime = runtime;
-} catch (accidentalStrictMode) {
-  // This module should not be running in strict mode, so the above
-  // assignment should always work unless something is misconfigured. Just
-  // in case runtime.js accidentally runs in strict mode, we can escape
-  // strict mode using a global Function call. This could conceivably fail
-  // if a Content Security Policy forbids using Function, but in that case
-  // the proper solution is to fix the accidental strict mode problem. If
-  // you've misconfigured your bundler to force strict mode and applied a
-  // CSP to forbid Function, and you're not willing to fix either of those
-  // problems, please detail your unique predicament in a GitHub issue.
-  Function("r", "regeneratorRuntime = r")(runtime);
-}
+    var _vB = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _vC = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _tempA = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _tempB = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _tempC = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _morphA = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _morphB = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    var _morphC = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+    function _calculateMorphedAttributeData(object, material, attribute, morphAttribute, morphTargetsRelative, a, b, c, modifiedAttributeArray) {
+      _vA.fromBufferAttribute(attribute, a);
+
+      _vB.fromBufferAttribute(attribute, b);
+
+      _vC.fromBufferAttribute(attribute, c);
+
+      var morphInfluences = object.morphTargetInfluences;
+
+      if (material.morphTargets && morphAttribute && morphInfluences) {
+        _morphA.set(0, 0, 0);
+
+        _morphB.set(0, 0, 0);
+
+        _morphC.set(0, 0, 0);
+
+        for (var i = 0, il = morphAttribute.length; i < il; i++) {
+          var influence = morphInfluences[i];
+          var morph = morphAttribute[i];
+          if (influence === 0) continue;
+
+          _tempA.fromBufferAttribute(morph, a);
+
+          _tempB.fromBufferAttribute(morph, b);
+
+          _tempC.fromBufferAttribute(morph, c);
+
+          if (morphTargetsRelative) {
+            _morphA.addScaledVector(_tempA, influence);
+
+            _morphB.addScaledVector(_tempB, influence);
+
+            _morphC.addScaledVector(_tempC, influence);
+          } else {
+            _morphA.addScaledVector(_tempA.sub(_vA), influence);
+
+            _morphB.addScaledVector(_tempB.sub(_vB), influence);
+
+            _morphC.addScaledVector(_tempC.sub(_vC), influence);
+          }
+        }
+
+        _vA.add(_morphA);
+
+        _vB.add(_morphB);
+
+        _vC.add(_morphC);
+      }
+
+      if (object.isSkinnedMesh) {
+        object.boneTransform(a, _vA);
+        object.boneTransform(b, _vB);
+        object.boneTransform(c, _vC);
+      }
+
+      modifiedAttributeArray[a * 3 + 0] = _vA.x;
+      modifiedAttributeArray[a * 3 + 1] = _vA.y;
+      modifiedAttributeArray[a * 3 + 2] = _vA.z;
+      modifiedAttributeArray[b * 3 + 0] = _vB.x;
+      modifiedAttributeArray[b * 3 + 1] = _vB.y;
+      modifiedAttributeArray[b * 3 + 2] = _vB.z;
+      modifiedAttributeArray[c * 3 + 0] = _vC.x;
+      modifiedAttributeArray[c * 3 + 1] = _vC.y;
+      modifiedAttributeArray[c * 3 + 2] = _vC.z;
+    }
+
+    var geometry = object.geometry;
+    var material = object.material;
+    var a, b, c;
+    var index = geometry.index;
+    var positionAttribute = geometry.attributes.position;
+    var morphPosition = geometry.morphAttributes.position;
+    var morphTargetsRelative = geometry.morphTargetsRelative;
+    var normalAttribute = geometry.attributes.normal;
+    var morphNormal = geometry.morphAttributes.position;
+    var groups = geometry.groups;
+    var drawRange = geometry.drawRange;
+    var i, j, il, jl;
+    var group, groupMaterial;
+    var start, end;
+    var modifiedPosition = new Float32Array(positionAttribute.count * positionAttribute.itemSize);
+    var modifiedNormal = new Float32Array(normalAttribute.count * normalAttribute.itemSize);
+
+    if (index !== null) {
+      // indexed buffer geometry
+      if (Array.isArray(material)) {
+        for (i = 0, il = groups.length; i < il; i++) {
+          group = groups[i];
+          groupMaterial = material[group.materialIndex];
+          start = Math.max(group.start, drawRange.start);
+          end = Math.min(group.start + group.count, drawRange.start + drawRange.count);
+
+          for (j = start, jl = end; j < jl; j += 3) {
+            a = index.getX(j);
+            b = index.getX(j + 1);
+            c = index.getX(j + 2);
+
+            _calculateMorphedAttributeData(object, groupMaterial, positionAttribute, morphPosition, morphTargetsRelative, a, b, c, modifiedPosition);
+
+            _calculateMorphedAttributeData(object, groupMaterial, normalAttribute, morphNormal, morphTargetsRelative, a, b, c, modifiedNormal);
+          }
+        }
+      } else {
+        start = Math.max(0, drawRange.start);
+        end = Math.min(index.count, drawRange.start + drawRange.count);
+
+        for (i = start, il = end; i < il; i += 3) {
+          a = index.getX(i);
+          b = index.getX(i + 1);
+          c = index.getX(i + 2);
+
+          _calculateMorphedAttributeData(object, material, positionAttribute, morphPosition, morphTargetsRelative, a, b, c, modifiedPosition);
+
+          _calculateMorphedAttributeData(object, material, normalAttribute, morphNormal, morphTargetsRelative, a, b, c, modifiedNormal);
+        }
+      }
+    } else if (positionAttribute !== undefined) {
+      // non-indexed buffer geometry
+      if (Array.isArray(material)) {
+        for (i = 0, il = groups.length; i < il; i++) {
+          group = groups[i];
+          groupMaterial = material[group.materialIndex];
+          start = Math.max(group.start, drawRange.start);
+          end = Math.min(group.start + group.count, drawRange.start + drawRange.count);
+
+          for (j = start, jl = end; j < jl; j += 3) {
+            a = j;
+            b = j + 1;
+            c = j + 2;
+
+            _calculateMorphedAttributeData(object, groupMaterial, positionAttribute, morphPosition, morphTargetsRelative, a, b, c, modifiedPosition);
+
+            _calculateMorphedAttributeData(object, groupMaterial, normalAttribute, morphNormal, morphTargetsRelative, a, b, c, modifiedNormal);
+          }
+        }
+      } else {
+        start = Math.max(0, drawRange.start);
+        end = Math.min(positionAttribute.count, drawRange.start + drawRange.count);
+
+        for (i = start, il = end; i < il; i += 3) {
+          a = i;
+          b = i + 1;
+          c = i + 2;
+
+          _calculateMorphedAttributeData(object, material, positionAttribute, morphPosition, morphTargetsRelative, a, b, c, modifiedPosition);
+
+          _calculateMorphedAttributeData(object, material, normalAttribute, morphNormal, morphTargetsRelative, a, b, c, modifiedNormal);
+        }
+      }
+    }
+
+    var morphedPositionAttribute = new three__WEBPACK_IMPORTED_MODULE_0__.Float32BufferAttribute(modifiedPosition, 3);
+    var morphedNormalAttribute = new three__WEBPACK_IMPORTED_MODULE_0__.Float32BufferAttribute(modifiedNormal, 3);
+    return {
+      positionAttribute: positionAttribute,
+      normalAttribute: normalAttribute,
+      morphedPositionAttribute: morphedPositionAttribute,
+      morphedNormalAttribute: morphedNormalAttribute
+    };
+  }
+};
 
 
 /***/ }),
@@ -1146,7 +666,6 @@ try {
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "ACESFilmicToneMapping": () => (/* binding */ ACESFilmicToneMapping),
@@ -50569,18 +50088,6 @@ if ( typeof window !== 'undefined' ) {
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__webpack_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__webpack_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -50611,89 +50118,68 @@ if ( typeof window !== 'undefined' ) {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-"use strict";
-/*!*******************************!*\
-  !*** ./resources/js/cubes.js ***!
-  \*******************************/
+/*!*****************************************!*\
+  !*** ./resources/js/loadCubesWorker.js ***!
+  \*****************************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _controls__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./controls */ "./resources/js/controls.js");
-/* harmony import */ var _loadCubes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./loadCubes */ "./resources/js/loadCubes.js");
-/* harmony import */ var _VRButton__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./VRButton */ "./resources/js/VRButton.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _BufferGeometryUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BufferGeometryUtils */ "./resources/js/BufferGeometryUtils.js");
 
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+var s = 0.5;
+var perChunk = 32;
+var density = 0.01;
+var box = new three__WEBPACK_IMPORTED_MODULE_1__.BoxGeometry(s, s, s);
+var numVerts = box.getAttribute('position').count;
+var itemSize = 3; // r, g, b
 
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+var normalized = true;
+var material = new three__WEBPACK_IMPORTED_MODULE_1__.MeshBasicMaterial({
+  vertexColors: true
+});
 
-var THREE = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+onmessage = function onmessage(e) {
+  var X = e.data[0];
+  var Y = e.data[1];
+  var Z = e.data[2];
+  var geometries = [];
 
+  for (var x = 0; x < perChunk; x++) {
+    for (var y = 0; y < perChunk; y++) {
+      var _loop = function _loop(z) {
+        if (Math.random() > density) return "continue";
+        var geometry = box.clone();
+        geometry.translate(x + X * perChunk, y + Y * perChunk, z + Z * perChunk);
+        var rgb = [Math.random() * 255, Math.random() * 255, Math.random() * 255];
+        var colors = new Uint8Array(itemSize * numVerts); // copy the color into the colors array for each vertex
 
+        colors.forEach(function (v, ndx) {
+          colors[ndx] = rgb[ndx % 3];
+        });
+        var colorAttrib = new three__WEBPACK_IMPORTED_MODULE_1__.BufferAttribute(colors, itemSize, normalized);
+        geometry.setAttribute('color', colorAttrib);
+        geometries.push(geometry);
+      };
 
+      for (var z = 0; z < perChunk; z++) {
+        var _ret = _loop(z);
 
-var canvas = document.querySelector('#c');
-var vr = document.querySelector('#VRButton');
-var camera, scene, renderer, controls, cubes;
-init();
-
-function init() {
-  return _init.apply(this, arguments);
-}
-
-function _init() {
-  _init = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.set(0, 1.6, 0);
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xffffff);
-            scene.fog = new THREE.Fog(0xffffff, 0, 750);
-            controls = (0,_controls__WEBPACK_IMPORTED_MODULE_1__.getControls)(camera);
-            scene.add(controls.getObject());
-            renderer = new THREE.WebGLRenderer({
-              canvas: canvas,
-              antialias: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            _VRButton__WEBPACK_IMPORTED_MODULE_3__.VRButton.createButton(renderer, vr);
-            renderer.xr.enabled = true;
-            cubes = new THREE.Object3D();
-            scene.add(cubes);
-            (0,_loadCubes__WEBPACK_IMPORTED_MODULE_2__.loadCubes)(cubes);
-            window.addEventListener('resize', onWindowResize);
-            renderer.setAnimationLoop(render);
-
-          case 16:
-          case "end":
-            return _context.stop();
-        }
+        if (_ret === "continue") continue;
       }
-    }, _callee);
-  }));
-  return _init.apply(this, arguments);
-}
+    }
+  }
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight, false);
-}
+  if (geometries.length == 0) {
+    postMessage(false);
+    return;
+  }
 
-function render() {
-  // if (cubes.children.length > 0) {
-  //     let mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
-  //     console.log(mesh);
-  //     mesh.material.visible = !mesh.material.visible;
-  //     //mesh.needsUpdate = true;
-  // }
-  renderer.render(scene, camera);
-}
+  var mergedGeometry = _BufferGeometryUtils__WEBPACK_IMPORTED_MODULE_0__.BufferGeometryUtils.mergeBufferGeometries(geometries, false);
+  var mesh = new three__WEBPACK_IMPORTED_MODULE_1__.Mesh(mergedGeometry, material);
+  postMessage([mesh.toJSON(), geometries.length]);
+};
 })();
 
 /******/ })()

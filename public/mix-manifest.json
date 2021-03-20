@@ -1,6 +1,6 @@
 {
     "/js/app.js": "/js/app.js",
     "/js/cubes.js": "/js/cubes.js",
-    "/js/loadCubes.js": "/js/loadCubes.js",
+    "/js/loadCubesWorker.js": "/js/loadCubesWorker.js",
     "/css/app.css": "/css/app.css"
 }

@@ -13,7 +13,7 @@ const mix = require('laravel-mix');
 
 mix.js('resources/js/app.js', 'public/js')
     .js('resources/js/cubes.js', 'public/js')
-    .js('resources/js/loadCubes.js', 'public/js')
+    .js('resources/js/loadCubesWorker.js', 'public/js')
     .postCss('resources/css/app.css', 'public/css', [
         require('postcss-import'),
         require('tailwindcss'),
