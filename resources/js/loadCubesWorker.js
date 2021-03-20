@@ -1,66 +1,45 @@
 import {
-    BufferAttribute,
     BoxGeometry,
-    Mesh,
-    MeshBasicMaterial
+    InstancedMesh,
+    Matrix4,
+    Color,
+    MeshPhongMaterial
 } from 'three';
-import { BufferGeometryUtils } from './BufferGeometryUtils'
 
-const s = 0.5;
-const perChunk = 32;
+const s = 1;
+const perChunk = 16;
 
-const density = 0.01;
+const density = 0.05;
 
 const box = new BoxGeometry(s, s, s);
 
-const numVerts = box.getAttribute('position').count;
-const itemSize = 3;  // r, g, b
-const normalized = true;
+const material = new MeshPhongMaterial();
 
-const material = new MeshBasicMaterial({
-    vertexColors: true,
-});
+const count = Math.pow(perChunk, 3);
+const matrix = new Matrix4();
+const color = new Color();
 
 onmessage = function (e) {
     const X = e.data[0];
     const Y = e.data[1];
     const Z = e.data[2];
-    let geometries = [];
 
+    const mesh = new InstancedMesh(box, material, count);
+    let i = 0;
     for (let x = 0; x < perChunk; x++) {
         for (let y = 0; y < perChunk; y++) {
             for (let z = 0; z < perChunk; z++) {
-                if (Math.random() > (density)) continue;
-                const geometry = box.clone();
-                geometry.translate(x + (X * perChunk), y + (Y * perChunk), z + (Z * perChunk));
+                if(Math.random() > density) continue;
+                matrix.setPosition(x + (X * perChunk), y + (Y * perChunk), z + (Z * perChunk));
 
-                const rgb = [
-                    Math.random() * 255,
-                    Math.random() * 255,
-                    Math.random() * 255
-                ];
+                mesh.setMatrixAt(i, matrix);
+                mesh.setColorAt(i, color.setHex(Math.random() * 0xffffff));
 
-                const colors = new Uint8Array(itemSize * numVerts);
-
-                // copy the color into the colors array for each vertex
-                colors.forEach((v, ndx) => {
-                    colors[ndx] = rgb[ndx % 3];
-                });
-
-                const colorAttrib = new BufferAttribute(colors, itemSize, normalized);
-                geometry.setAttribute('color', colorAttrib);
-
-                geometries.push(geometry);
+                i++
             }
         }
     }
-    if (geometries.length == 0) {
-        postMessage(false);
-        return;
-    }
+    mesh.count = i;
 
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
-
-    const mesh = new Mesh(mergedGeometry, material);
-    postMessage([mesh.toJSON(), geometries.length]);
+    postMessage([mesh.toJSON(), mesh.instanceColor.toJSON()]);
 }

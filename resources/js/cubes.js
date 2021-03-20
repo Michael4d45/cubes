@@ -10,15 +10,19 @@ let camera, scene, renderer, controls, cubes;
 
 init();
 
-async function init() {
+function init() {
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 1.6, 0);
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
     scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
+    const light = new THREE.HemisphereLight( 0xffffff, 0xffffff * 0.5 );
+    light.position.set( - 1, 1.5, 1 );
+    scene.add( light );
+    
     controls = getControls(camera);
 
     scene.add(controls.getObject());
@@ -30,6 +34,7 @@ async function init() {
     renderer.xr.enabled = true;
 
     cubes = new THREE.Object3D;
+    cubes.scale.set(0.25, 0.25, 0.25);
     scene.add(cubes);
 
     loadCubes(cubes);

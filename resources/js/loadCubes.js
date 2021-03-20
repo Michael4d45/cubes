@@ -1,4 +1,4 @@
-import { ObjectLoader } from "three";
+import { BufferAttribute, ObjectLoader } from "three";
 
 export function loadCubes(cubes) {
     const loader = new ObjectLoader();
@@ -12,6 +12,13 @@ export function loadCubes(cubes) {
         if (!e.data)
             return;
 
+        const mesh = loader.parse(e.data[0]);
+        const instanceColor = e.data[1];
+        mesh.instanceColor = new BufferAttribute(new Float32Array(instanceColor.array), 3);
+
+        cubes.add(mesh);
+
+        count += mesh.count;
         if (!t1) {
             t1 = performance.now();
         }
@@ -19,15 +26,10 @@ export function loadCubes(cubes) {
             t2 = performance.now();
             ave = Math.round(count / ((t2 - t1) / 1000));
         }
-        count += e.data[1];
         console.log(count, ave);
-
-        const mesh = loader.parse(e.data[0]);
-        cubes.add(mesh);
-        //console.log(cubes);
     }
 
-    const distance = 4;
+    const distance = 2;
     const checkDistance = distance * distance;
     for (let y = distance; y >= -distance; y--) {
         let x = 0;
