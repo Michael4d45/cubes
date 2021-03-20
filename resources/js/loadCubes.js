@@ -7,9 +7,9 @@ import {
 import { BufferGeometryUtils } from './BufferGeometryUtils'
 
 const s = 0.5;
-const perChunk = 100;
+const perChunk = 16;
 
-const density = 0.005;
+const density = 0.01;
 
 const box = new BoxGeometry(s, s, s);
 
@@ -54,12 +54,13 @@ onmessage = function (e) {
             }
         }
     }
-    if(geometries.length == 0)
-        postMessage(false)
+    if (geometries.length == 0) {
+        postMessage(false);
+        return;
+    }
 
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
-        geometries, false);
-        
+    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
+
     const mesh = new Mesh(mergedGeometry, material);
-    postMessage(mesh.toJSON());
+    postMessage([mesh.toJSON(), geometries.length]);
 }

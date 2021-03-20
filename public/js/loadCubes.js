@@ -50129,8 +50129,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var s = 0.5;
-var perChunk = 100;
-var density = 0.005;
+var perChunk = 16;
+var density = 0.01;
 var box = new three__WEBPACK_IMPORTED_MODULE_1__.BoxGeometry(s, s, s);
 var numVerts = box.getAttribute('position').count;
 var itemSize = 3; // r, g, b
@@ -50171,10 +50171,14 @@ onmessage = function onmessage(e) {
     }
   }
 
-  if (geometries.length == 0) postMessage(false);
+  if (geometries.length == 0) {
+    postMessage(false);
+    return;
+  }
+
   var mergedGeometry = _BufferGeometryUtils__WEBPACK_IMPORTED_MODULE_0__.BufferGeometryUtils.mergeBufferGeometries(geometries, false);
   var mesh = new three__WEBPACK_IMPORTED_MODULE_1__.Mesh(mergedGeometry, material);
-  postMessage(mesh.toJSON());
+  postMessage([mesh.toJSON(), geometries.length]);
 };
 })();
 
