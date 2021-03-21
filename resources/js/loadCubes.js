@@ -14,7 +14,7 @@ export function loadCubes(cubes) {
 
         const mesh = loader.parse(e.data[0]);
         const instanceColor = e.data[1];
-        mesh.instanceColor = new BufferAttribute(new Float32Array(instanceColor.array), 3);
+        mesh.instanceColor = instanceColor ? new BufferAttribute(new Float32Array(instanceColor.array), 3) : null;
 
         cubes.add(mesh);
 
@@ -29,7 +29,7 @@ export function loadCubes(cubes) {
         console.log(count, ave);
     }
 
-    const distance = 2;
+    const distance = 4;
     const checkDistance = distance * distance;
     for (let y = distance; y >= -distance; y--) {
         let x = 0;

@@ -7,15 +7,14 @@ import {
 } from 'three';
 
 const s = 1;
-const perChunk = 16;
+const perChunk = 64;
 
-const density = 0.05;
+const density = 0.01;
 
 const box = new BoxGeometry(s, s, s);
 
 const material = new MeshPhongMaterial();
 
-const count = Math.pow(perChunk, 3);
 const matrix = new Matrix4();
 const color = new Color();
 
@@ -24,22 +23,46 @@ onmessage = function (e) {
     const Y = e.data[1];
     const Z = e.data[2];
 
-    const mesh = new InstancedMesh(box, material, count);
-    let i = 0;
+    const cubeData = spoofData(X, Y, Z);
+
+    const mesh = new InstancedMesh(box, material, cubeData.count);
+    //color.setHex(Math.random() * 0xffffff)
+    for (let i = 0; i < cubeData.count; i++) {
+        const cube = cubeData.array[i];
+        matrix.setPosition(cube.position.x, cube.position.y, cube.position.z);
+
+        mesh.setMatrixAt(i, matrix);
+        mesh.setColorAt(i, color.setHex(cube.attributes.color));
+    }
+
+    postMessage([mesh.toJSON(), mesh.instanceColor ? mesh.instanceColor.toJSON() : null]);
+}
+
+function spoofData(X, Y, Z) {
+    const cubes = {
+        array: [],
+        count: 0
+    }
+    
+    const hexColor = Math.random() * 0xffffff;
     for (let x = 0; x < perChunk; x++) {
         for (let y = 0; y < perChunk; y++) {
             for (let z = 0; z < perChunk; z++) {
                 if(Math.random() > density) continue;
-                matrix.setPosition(x + (X * perChunk), y + (Y * perChunk), z + (Z * perChunk));
-
-                mesh.setMatrixAt(i, matrix);
-                mesh.setColorAt(i, color.setHex(Math.random() * 0xffffff));
-
-                i++
+                cubes.array.push({
+                    position: {
+                        x: x + (X * perChunk),
+                        y: y + (Y * perChunk),
+                        z: z + (Z * perChunk)
+                    },
+                    attributes: {
+                        color: hexColor
+                    }
+                });
+                cubes.count++;
             }
         }
     }
-    mesh.count = i;
 
-    postMessage([mesh.toJSON(), mesh.instanceColor.toJSON()]);
+    return cubes
 }

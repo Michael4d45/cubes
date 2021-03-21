@@ -8,6 +8,8 @@ const vr = document.querySelector('#VRButton');
 
 let camera, scene, renderer, controls, cubes;
 
+const cubeMatrix = new THREE.Matrix4();
+
 init();
 
 function init() {
@@ -16,13 +18,13 @@ function init() {
     camera.position.set(0, 1.6, 0);
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-    scene.fog = new THREE.Fog(0xffffff, 0, 750);
+    //scene.background = new THREE.Color(0xffffff);
+    //scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
-    const light = new THREE.HemisphereLight( 0xffffff, 0xffffff * 0.5 );
-    light.position.set( - 1, 1.5, 1 );
-    scene.add( light );
-    
+    const light = new THREE.HemisphereLight(0xffffff, 0x888888);
+    light.position.set(- 1, 1.5, 1);
+    scene.add(light);
+
     controls = getControls(camera);
 
     scene.add(controls.getObject());
@@ -51,14 +53,34 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
 }
 
-
 function render() {
-    // if (cubes.children.length > 0) {
-    //     let mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
-    //     console.log(mesh);
-    //     mesh.material.visible = !mesh.material.visible;
-    //     //mesh.needsUpdate = true;
-    // }
+    for (let i = 0; i < 100; i++) {
+        if (cubes.children.length > 0) {
+            const mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
+            const cubeID = Math.floor(mesh.count * Math.random());
+            mesh.getMatrixAt(cubeID, cubeMatrix);
+            moveRandomly(cubeMatrix);
+            mesh.setMatrixAt(cubeID, cubeMatrix);
+            mesh.instanceMatrix.needsUpdate = true;
+        }
+    }
 
     renderer.render(scene, camera);
+}
+
+function moveRandomly(matrix) {
+    let inc = 1;
+    if (Math.random() > 0.5) inc *= -1;
+
+    switch (Math.floor(Math.random() * 3)) {
+        case 0:
+            matrix.elements[12] += inc;
+            break;
+        case 1:
+            matrix.elements[13] += inc;
+            break;
+        case 2:
+            matrix.elements[14] += inc;
+            break;
+    }
 }
