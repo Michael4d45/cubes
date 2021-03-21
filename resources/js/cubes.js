@@ -25,7 +25,7 @@ function init() {
     light.position.set(- 1, 1.5, 1);
     scene.add(light);
 
-    controls = getControls(camera);
+    controls = getControls(camera, canvas);
 
     scene.add(controls.getObject());
 
