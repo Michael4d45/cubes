@@ -56,25 +56,41 @@ var PointerLockControls = function PointerLockControls(camera, domElement) {
   var euler = new three__WEBPACK_IMPORTED_MODULE_0__.Euler(0, 0, 0, 'YXZ');
   var PI_2 = Math.PI / 2;
   var vec = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+  var lastX = 0;
+  var lastY = 0;
 
-  function onMouseMove(event) {
-    if (scope.isLocked === false) return;
-    var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+  function move(movementX, movementY) {
     euler.setFromQuaternion(camera.quaternion);
     euler.y -= movementX * 0.002;
     euler.x -= movementY * 0.002;
     euler.x = Math.max(PI_2 - scope.maxPolarAngle, Math.min(PI_2 - scope.minPolarAngle, euler.x));
     camera.quaternion.setFromEuler(euler);
     scope.dispatchEvent(changeEvent);
+    lastX = movementX;
+    lastY = movementY;
+
+    if (Math.abs(lastX) < 100 && Math.abs(lastY) < 100) {
+      lastX = 0;
+      lastY = 0;
+    }
   }
 
-  function onPointerlockChange() {
+  function onMouseMove(event) {
+    var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+    if (scope.isLocked === false) return;
+    move(movementX, movementY);
+  }
+
+  function onPointerlockChange(event) {
     if (scope.domElement.ownerDocument.pointerLockElement === scope.domElement) {
       scope.dispatchEvent(lockEvent);
       scope.isLocked = true;
     } else {
       scope.dispatchEvent(unlockEvent);
+      move(-lastX, -lastY);
+      lastX = 0;
+      lastY = 0;
       scope.isLocked = false;
     }
   }
@@ -84,15 +100,15 @@ var PointerLockControls = function PointerLockControls(camera, domElement) {
   }
 
   this.connect = function () {
-    scope.domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
-    scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange);
+    scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange, true);
     scope.domElement.ownerDocument.addEventListener('pointerlockerror', onPointerlockError);
+    scope.domElement.addEventListener('mousemove', onMouseMove, true);
   };
 
   this.disconnect = function () {
-    scope.domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
     scope.domElement.ownerDocument.removeEventListener('pointerlockchange', onPointerlockChange);
     scope.domElement.ownerDocument.removeEventListener('pointerlockerror', onPointerlockError);
+    scope.domElement.removeEventListener('mousemove', onMouseMove);
   };
 
   this.dispose = function () {
@@ -297,17 +313,23 @@ __webpack_require__.r(__webpack_exports__);
 
 var menu = document.querySelector('#menu');
 var play = document.querySelector('#play');
+var nav = document.querySelector('nav');
+var scrollHeight = nav.scrollHeight;
 var controls;
-function getControls(camera) {
-  controls = new _PointerLockControls__WEBPACK_IMPORTED_MODULE_0__.PointerLockControls(camera, document.body);
+function getControls(camera, domElement) {
+  controls = new _PointerLockControls__WEBPACK_IMPORTED_MODULE_0__.PointerLockControls(camera, domElement);
   play.addEventListener('click', function () {
     controls.lock();
   });
   controls.addEventListener('lock', function () {
     menu.style.display = 'none';
+    nav.style.display = 'none';
   });
   controls.addEventListener('unlock', function () {
     menu.style.display = '';
+    nav.style.display = '';
+    document.body.scrollTop = scrollHeight;
+    document.documentElement.scrollTop = scrollHeight;
   });
   return controls;
 }
@@ -337,6 +359,11 @@ function loadCubes(cubes) {
 
   loadCubes.onmessage = function (e) {
     if (!e.data) return;
+    var mesh = loader.parse(e.data[0]);
+    var instanceColor = e.data[1];
+    mesh.instanceColor = instanceColor ? new three__WEBPACK_IMPORTED_MODULE_0__.BufferAttribute(new Float32Array(instanceColor.array), 3) : null;
+    cubes.add(mesh);
+    count += mesh.count;
 
     if (!t1) {
       t1 = performance.now();
@@ -345,10 +372,7 @@ function loadCubes(cubes) {
       ave = Math.round(count / ((t2 - t1) / 1000));
     }
 
-    count += e.data[1];
     console.log(count, ave);
-    var mesh = loader.parse(e.data[0]);
-    cubes.add(mesh); //console.log(cubes);
   };
 
   var distance = 4;
@@ -50618,17 +50642,9 @@ var __webpack_exports__ = {};
   !*** ./resources/js/cubes.js ***!
   \*******************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _controls__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./controls */ "./resources/js/controls.js");
-/* harmony import */ var _loadCubes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./loadCubes */ "./resources/js/loadCubes.js");
-/* harmony import */ var _VRButton__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./VRButton */ "./resources/js/VRButton.js");
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
+/* harmony import */ var _controls__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./controls */ "./resources/js/controls.js");
+/* harmony import */ var _loadCubes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./loadCubes */ "./resources/js/loadCubes.js");
+/* harmony import */ var _VRButton__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./VRButton */ "./resources/js/VRButton.js");
 var THREE = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
 
 
@@ -50637,46 +50653,33 @@ var THREE = __webpack_require__(/*! three */ "./node_modules/three/build/three.m
 var canvas = document.querySelector('#c');
 var vr = document.querySelector('#VRButton');
 var camera, scene, renderer, controls, cubes;
+var cubeMatrix = new THREE.Matrix4();
 init();
 
 function init() {
-  return _init.apply(this, arguments);
-}
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 1.6, 0);
+  scene = new THREE.Scene(); //scene.background = new THREE.Color(0xffffff);
+  //scene.fog = new THREE.Fog(0xffffff, 0, 750);
 
-function _init() {
-  _init = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.set(0, 1.6, 0);
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xffffff);
-            scene.fog = new THREE.Fog(0xffffff, 0, 750);
-            controls = (0,_controls__WEBPACK_IMPORTED_MODULE_1__.getControls)(camera);
-            scene.add(controls.getObject());
-            renderer = new THREE.WebGLRenderer({
-              canvas: canvas,
-              antialias: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            _VRButton__WEBPACK_IMPORTED_MODULE_3__.VRButton.createButton(renderer, vr);
-            renderer.xr.enabled = true;
-            cubes = new THREE.Object3D();
-            scene.add(cubes);
-            (0,_loadCubes__WEBPACK_IMPORTED_MODULE_2__.loadCubes)(cubes);
-            window.addEventListener('resize', onWindowResize);
-            renderer.setAnimationLoop(render);
-
-          case 16:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _init.apply(this, arguments);
+  var light = new THREE.HemisphereLight(0xffffff, 0x888888);
+  light.position.set(-1, 1.5, 1);
+  scene.add(light);
+  controls = (0,_controls__WEBPACK_IMPORTED_MODULE_0__.getControls)(camera, canvas);
+  scene.add(controls.getObject());
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    antialias: true
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  _VRButton__WEBPACK_IMPORTED_MODULE_2__.VRButton.createButton(renderer, vr);
+  renderer.xr.enabled = true;
+  cubes = new THREE.Object3D();
+  cubes.scale.set(0.25, 0.25, 0.25);
+  scene.add(cubes);
+  (0,_loadCubes__WEBPACK_IMPORTED_MODULE_1__.loadCubes)(cubes);
+  window.addEventListener('resize', onWindowResize);
+  renderer.setAnimationLoop(render);
 }
 
 function onWindowResize() {
@@ -50686,13 +50689,37 @@ function onWindowResize() {
 }
 
 function render() {
-  // if (cubes.children.length > 0) {
-  //     let mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
-  //     console.log(mesh);
-  //     mesh.material.visible = !mesh.material.visible;
-  //     //mesh.needsUpdate = true;
-  // }
+  for (var i = 0; i < 100; i++) {
+    if (cubes.children.length > 0) {
+      var mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
+      var cubeID = Math.floor(mesh.count * Math.random());
+      mesh.getMatrixAt(cubeID, cubeMatrix);
+      moveRandomly(cubeMatrix);
+      mesh.setMatrixAt(cubeID, cubeMatrix);
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+
   renderer.render(scene, camera);
+}
+
+function moveRandomly(matrix) {
+  var inc = 1;
+  if (Math.random() > 0.5) inc *= -1;
+
+  switch (Math.floor(Math.random() * 3)) {
+    case 0:
+      matrix.elements[12] += inc;
+      break;
+
+    case 1:
+      matrix.elements[13] += inc;
+      break;
+
+    case 2:
+      matrix.elements[14] += inc;
+      break;
+  }
 }
 })();
 

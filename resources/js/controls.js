@@ -7,8 +7,8 @@ const scrollHeight = nav.scrollHeight;
 
 let controls;
 
-export function getControls(camera) {
-    controls = new PointerLockControls(camera, document.body);
+export function getControls(camera, domElement) {
+    controls = new PointerLockControls(camera, domElement);
 
     play.addEventListener('click', function () {
         controls.lock();
