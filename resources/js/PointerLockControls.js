@@ -37,13 +37,10 @@ var PointerLockControls = function (camera, domElement) {
 
 	var vec = new Vector3();
 
-	function onMouseMove(event) {
-		
-		if (scope.isLocked === false) return;
+	let lastX = 0;
+	let lastY = 0;
 
-		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-
+	function move(movementX, movementY) {
 		euler.setFromQuaternion(camera.quaternion);
 
 		euler.y -= movementX * 0.002;
@@ -55,9 +52,25 @@ var PointerLockControls = function (camera, domElement) {
 
 		scope.dispatchEvent(changeEvent);
 
+		lastX = movementX;
+		lastY = movementY;
+		if(Math.abs(lastX) < 100 && Math.abs(lastY) < 100) {
+			lastX = 0;
+			lastY = 0;
+		}
 	}
 
-	function onPointerlockChange() {
+	function onMouseMove(event) {
+
+		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+		if (scope.isLocked === false) return;
+
+		move(movementX, movementY);
+	}
+
+	function onPointerlockChange(event) {
 		if (scope.domElement.ownerDocument.pointerLockElement === scope.domElement) {
 
 			scope.dispatchEvent(lockEvent);
@@ -67,6 +80,10 @@ var PointerLockControls = function (camera, domElement) {
 		} else {
 
 			scope.dispatchEvent(unlockEvent);
+
+			move(-lastX, -lastY);
+			lastX = 0;
+			lastY = 0;
 
 			scope.isLocked = false;
 
@@ -82,9 +99,9 @@ var PointerLockControls = function (camera, domElement) {
 
 	this.connect = function () {
 
-		scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange);
+		scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange, true);
 		scope.domElement.ownerDocument.addEventListener('pointerlockerror', onPointerlockError);
-		scope.domElement.ownerDocument.addEventListener('mousemove', onMouseMove);
+		scope.domElement.addEventListener('mousemove', onMouseMove, true);
 
 	};
 
@@ -92,7 +109,7 @@ var PointerLockControls = function (camera, domElement) {
 
 		scope.domElement.ownerDocument.removeEventListener('pointerlockchange', onPointerlockChange);
 		scope.domElement.ownerDocument.removeEventListener('pointerlockerror', onPointerlockError);
-		scope.domElement.ownerDocument.removeEventListener('mousemove', onMouseMove);
+		scope.domElement.removeEventListener('mousemove', onMouseMove);
 
 	};
 
