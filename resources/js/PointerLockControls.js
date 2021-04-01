@@ -137,6 +137,14 @@ var PointerLockControls = function (camera, domElement) {
 
 	}();
 
+	this.move = function (v, s) {
+		this.moveRight( - v.x * s)
+		this.moveForward( - v.z * s)
+
+		// move upwards
+		camera.position.y -= v.y * s;
+	};
+
 	this.moveForward = function (distance) {
 
 		// move forward parallel to the xz-plane

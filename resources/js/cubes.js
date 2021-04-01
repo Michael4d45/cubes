@@ -1,5 +1,5 @@
 const THREE = require('three');
-import { getControls } from './controls';
+import { getControls, moveCamera } from './controls';
 import { loadCubes } from './loadCubes';
 import { VRButton } from './VRButton';
 
@@ -9,6 +9,7 @@ const vr = document.querySelector('#VRButton');
 let camera, scene, renderer, controls, cubes;
 
 const cubeMatrix = new THREE.Matrix4();
+let prevTime = performance.now();
 
 init();
 
@@ -54,17 +55,21 @@ function onWindowResize() {
 }
 
 function render() {
-    for (let i = 0; i < 100; i++) {
-        if (cubes.children.length > 0) {
-            const mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
-            const cubeID = Math.floor(mesh.count * Math.random());
-            mesh.getMatrixAt(cubeID, cubeMatrix);
-            moveRandomly(cubeMatrix);
-            mesh.setMatrixAt(cubeID, cubeMatrix);
-            mesh.instanceMatrix.needsUpdate = true;
-        }
-    }
+    // for (let i = 0; i < 100; i++) {
+    //     if (cubes.children.length > 0) {
+    //         const mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
+    //         const cubeID = Math.floor(mesh.count * Math.random());
+    //         mesh.getMatrixAt(cubeID, cubeMatrix);
+    //         moveRandomly(cubeMatrix);
+    //         mesh.setMatrixAt(cubeID, cubeMatrix);
+    //         mesh.instanceMatrix.needsUpdate = true;
+    //     }
+    // }
+	const time = performance.now();
+    const delta = ( time - prevTime ) / 1000;
+    prevTime = time;
 
+    moveCamera(delta)
     renderer.render(scene, camera);
 }
 
