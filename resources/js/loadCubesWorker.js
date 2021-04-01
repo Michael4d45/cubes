@@ -7,9 +7,9 @@ import {
 } from 'three';
 
 const s = 1;
-const perChunk = 64;
+const perChunk = 16;
 
-const density = 0.01;
+const density = 0.05;
 
 const box = new BoxGeometry(s, s, s);
 
@@ -26,7 +26,6 @@ onmessage = function (e) {
     const cubeData = spoofData(X, Y, Z);
 
     const mesh = new InstancedMesh(box, material, cubeData.count);
-    //color.setHex(Math.random() * 0xffffff)
     for (let i = 0; i < cubeData.count; i++) {
         const cube = cubeData.array[i];
         matrix.setPosition(cube.position.x, cube.position.y, cube.position.z);

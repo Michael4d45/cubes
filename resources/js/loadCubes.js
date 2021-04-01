@@ -29,15 +29,16 @@ export function loadCubes(cubes) {
         console.log(count, ave);
     }
 
-    const distance = 4;
-    const checkDistance = distance * distance;
-    for (let y = distance; y >= -distance; y--) {
+    const hDistance = 4;
+    const vDistance = 2;
+    const checkDistance = hDistance * hDistance;
+    for (let y = vDistance; y >= -vDistance; y--) {
         let x = 0;
         let z = 0;
         let incX = true;
         let inc = 1;
         let limit = 1;
-        while (Math.abs(x) <= distance || Math.abs(z) <= distance) {
+        while (Math.abs(x) <= hDistance || Math.abs(z) <= hDistance) {
             if ((x * x + y * y + z * z) <= checkDistance)
                 loadCubes.postMessage([x, y, z])
 
