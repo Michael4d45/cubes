@@ -34,7 +34,7 @@ onmessage = function (e) {
         mesh.setColorAt(i, color.setHex(cube.attributes.color));
     }
 
-    postMessage([mesh.toJSON(), mesh.instanceColor ? mesh.instanceColor.toJSON() : null]);
+    postMessage(mesh.toJSON());
 }
 
 function spoofData(X, Y, Z) {

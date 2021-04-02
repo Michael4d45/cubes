@@ -12,9 +12,7 @@ export function loadCubes(cubes) {
         if (!e.data)
             return;
 
-        const mesh = loader.parse(e.data[0]);
-        const instanceColor = e.data[1];
-        mesh.instanceColor = instanceColor ? new BufferAttribute(new Float32Array(instanceColor.array), 3) : null;
+        const mesh = loader.parse(e.data);
 
         cubes.add(mesh);
 
