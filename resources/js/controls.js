@@ -11,12 +11,19 @@ let controls;
 const velocity = new Vector3();
 const direction = new Vector3();
 
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let moveUp = false;
-let moveDown = false;
+let moveForward, moveBackward, moveLeft, moveRight, moveUp, moveDown;
+
+function init() {
+    moveForward = false;
+    moveBackward = false;
+    moveLeft = false;
+    moveRight = false;
+    moveUp = false;
+    moveDown = false;
+    velocity.set(0, 0, 0);
+}
+
+init();
 
 function onKeyDown(event) {
     switch (event.code) {
@@ -48,9 +55,7 @@ function onKeyDown(event) {
         case 'ShiftLeft':
             moveDown = true;
             break;
-
     }
-
 };
 
 function onKeyUp(event) {
@@ -85,7 +90,6 @@ function onKeyUp(event) {
             moveDown = false;
             break;
     }
-
 };
 
 function getControls(camera, domElement) {
@@ -97,6 +101,7 @@ function getControls(camera, domElement) {
     controls.addEventListener('lock', function () {
         menu.style.display = 'none';
         nav.style.display = 'none';
+        init()
     });
     controls.addEventListener('unlock', function () {
         menu.style.display = '';
@@ -110,6 +115,7 @@ function getControls(camera, domElement) {
 
     return controls;
 }
+
 const deceleration = 5;
 const acceleration = 10;
 function moveCamera(delta) {
