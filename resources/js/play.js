@@ -27,7 +27,6 @@ function init() {
     scene.add(light);
 
     controls = getControls(camera, canvas);
-
     scene.add(controls.getObject());
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -39,7 +38,6 @@ function init() {
     cubes = new THREE.Object3D;
     cubes.scale.set(0.25, 0.25, 0.25);
     scene.add(cubes);
-
     loadCubes(cubes);
 
     window.addEventListener('resize', onWindowResize);

@@ -10,6 +10,6 @@
     <canvas id='c' class='w-full'></canvas>
 
     @push('scripts')
-        <script src="{{ mix('js/cubes.js') }}"></script>
+        <script src="{{ mix('js/play.js') }}"></script>
     @endpush
 </x-app-layout>
