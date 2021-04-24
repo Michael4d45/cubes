@@ -1,7 +1,7 @@
 const THREE = require('three');
 import { getControls, moveCamera } from './controls';
-import { loadCubes } from './loadCubes';
 import { VRButton } from './VRButton';
+import Cubes from './cubes';
 
 const canvas = document.querySelector('#c');
 const vr = document.querySelector('#VRButton');
@@ -35,10 +35,7 @@ function init() {
     VRButton.createButton(renderer, vr);
     renderer.xr.enabled = true;
 
-    cubes = new THREE.Object3D;
-    cubes.scale.set(0.25, 0.25, 0.25);
-    scene.add(cubes);
-    loadCubes(cubes);
+    cubes = new Cubes(scene, new THREE.Vector3(0, 0, 0));
 
     window.addEventListener('resize', onWindowResize);
 
@@ -68,6 +65,9 @@ function render() {
     prevTime = time;
 
     moveCamera(delta)
+
+    cubes.update(camera.position)
+
     renderer.render(scene, camera);
 }
 

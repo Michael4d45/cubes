@@ -5,9 +5,9 @@ import {
     Color,
     MeshPhongMaterial
 } from 'three';
+import { chunkSize } from './settings';
 
 const s = 1;
-const perChunk = 16;
 
 const density = 0.05;
 
@@ -19,11 +19,9 @@ const matrix = new Matrix4();
 const color = new Color();
 
 onmessage = function (e) {
-    const X = e.data[0];
-    const Y = e.data[1];
-    const Z = e.data[2];
+    const pos = e.data;
 
-    const cubeData = spoofData(X, Y, Z);
+    const cubeData = spoofData(pos);
 
     const mesh = new InstancedMesh(box, material, cubeData.count);
     for (let i = 0; i < cubeData.count; i++) {
@@ -34,25 +32,29 @@ onmessage = function (e) {
         mesh.setColorAt(i, color.setHex(cube.attributes.color));
     }
 
-    postMessage(mesh.toJSON());
+    postMessage([mesh.toJSON(), pos]);
 }
 
-function spoofData(X, Y, Z) {
+function spoofData(pos) {
+    const X = pos[0];
+    const Y = pos[1];
+    const Z = pos[2];
+    
     const cubes = {
         array: [],
         count: 0
     }
-    
+
     const hexColor = Math.random() * 0xffffff;
-    for (let x = 0; x < perChunk; x++) {
-        for (let y = 0; y < perChunk; y++) {
-            for (let z = 0; z < perChunk; z++) {
-                if(Math.random() > density) continue;
+    for (let x = 0; x < chunkSize; x++) {
+        for (let y = 0; y < chunkSize; y++) {
+            for (let z = 0; z < chunkSize; z++) {
+                if (Math.random() > density) continue;
                 cubes.array.push({
                     position: {
-                        x: x + (X * perChunk),
-                        y: y + (Y * perChunk),
-                        z: z + (Z * perChunk)
+                        x: x + (X * chunkSize),
+                        y: y + (Y * chunkSize),
+                        z: z + (Z * chunkSize)
                     },
                     attributes: {
                         color: hexColor
