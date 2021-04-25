@@ -16,7 +16,7 @@ init();
 function init() {
 
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.6, 0);
+    camera.position.set(0, 0, 0);
 
     scene = new THREE.Scene();
     //scene.background = new THREE.Color(0xffffff);
@@ -35,7 +35,7 @@ function init() {
     VRButton.createButton(renderer, vr);
     renderer.xr.enabled = true;
 
-    cubes = new Cubes(scene, new THREE.Vector3(0, 0, 0));
+    cubes = new Cubes(scene, camera.position);
 
     window.addEventListener('resize', onWindowResize);
 

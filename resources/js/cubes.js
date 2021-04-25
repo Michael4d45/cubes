@@ -59,8 +59,10 @@ export default function Cubes(scene, pos) {
             let limit = 1;
             while (Math.abs(x) <= hDistance || Math.abs(z) <= hDistance) {
                 const pos = [x + curChunk.x, y + curChunk.y, z + curChunk.z]
-                if (isClose(x, y, z, loadDistance) && !isLoaded(pos))
+                if (isClose(x, y, z, loadDistance) && !(pos in cubes)) {
+                    cubes[pos] = [pos, null]
                     loadCubesWorker.postMessage(pos);
+                }
 
                 if (incX) {
                     x += inc;
@@ -110,14 +112,12 @@ export default function Cubes(scene, pos) {
         for (const key in cubes) {
             const [chunkPos, mesh] = cubes[key]
             if (!isClose(...chunkPos, releaseDistance, pos)) {
-                cubesObject.remove(mesh)
-                mesh.dispose()
                 delete cubes[key];
+                if (mesh) {
+                    mesh.dispose();
+                    cubesObject.remove(mesh);
+                }
             }
         }
-    }
-
-    function isLoaded(pos) {
-        return pos.toString() in cubes
     }
 }
