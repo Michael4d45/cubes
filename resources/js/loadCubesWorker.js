@@ -22,6 +22,8 @@ onmessage = function (e) {
     const pos = e.data;
 
     const cubeData = spoofData(pos);
+    if (cubeData.count <= 0)
+        return;
 
     const mesh = new InstancedMesh(box, material, cubeData.count);
     for (let i = 0; i < cubeData.count; i++) {
@@ -39,7 +41,7 @@ function spoofData(pos) {
     const X = pos[0];
     const Y = pos[1];
     const Z = pos[2];
-    
+
     const cubes = {
         array: [],
         count: 0
