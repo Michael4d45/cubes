@@ -30,7 +30,7 @@ function init() {
     scene.add(controls.getObject());
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
 
     VRButton.createButton(renderer, vr);
     renderer.xr.enabled = true;
