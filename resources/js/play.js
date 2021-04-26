@@ -8,7 +8,6 @@ const vr = document.querySelector('#VRButton');
 
 let camera, scene, renderer, controls, cubes;
 
-const cubeMatrix = new THREE.Matrix4();
 let prevTime = performance.now();
 
 init();
@@ -50,16 +49,6 @@ function onWindowResize() {
 }
 
 function render() {
-    // for (let i = 0; i < 100; i++) {
-    //     if (cubes.children.length > 0) {
-    //         const mesh = cubes.children[Math.floor(Math.random() * cubes.children.length)];
-    //         const cubeID = Math.floor(mesh.count * Math.random());
-    //         mesh.getMatrixAt(cubeID, cubeMatrix);
-    //         moveRandomly(cubeMatrix);
-    //         mesh.setMatrixAt(cubeID, cubeMatrix);
-    //         mesh.instanceMatrix.needsUpdate = true;
-    //     }
-    // }
 	const time = performance.now();
     const delta = ( time - prevTime ) / 1000;
     prevTime = time;
@@ -69,21 +58,4 @@ function render() {
     cubes.update(camera.position)
 
     renderer.render(scene, camera);
-}
-
-function moveRandomly(matrix) {
-    let inc = 1;
-    if (Math.random() > 0.5) inc *= -1;
-
-    switch (Math.floor(Math.random() * 3)) {
-        case 0:
-            matrix.elements[12] += inc;
-            break;
-        case 1:
-            matrix.elements[13] += inc;
-            break;
-        case 2:
-            matrix.elements[14] += inc;
-            break;
-    }
 }

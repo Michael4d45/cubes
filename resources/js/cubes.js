@@ -1,8 +1,9 @@
-import { Object3D, ObjectLoader, Vector3 } from 'three';
+import { Matrix4, Object3D, ObjectLoader, Vector3 } from 'three';
 import { chunkSize } from './settings';
 
 const loader = new ObjectLoader();
 const cubeSize = 0.25;
+const cubeMatrix = new Matrix4();
 
 export default function Cubes(scene, pos) {
 
@@ -106,6 +107,17 @@ export default function Cubes(scene, pos) {
             releaseUpdates(curChunk);
             loadCubes();
         }
+
+        for (let i = 0; i < 100; i++) {
+            if (cubesObject.children.length > 0) {
+                const mesh = cubesObject.children[Math.floor(Math.random() * cubesObject.children.length)];
+                const cubeID = Math.floor(mesh.count * Math.random());
+                mesh.getMatrixAt(cubeID, cubeMatrix);
+                moveRandomly(cubeMatrix);
+                mesh.setMatrixAt(cubeID, cubeMatrix);
+                mesh.instanceMatrix.needsUpdate = true;
+            }
+        }
     }
 
     function releaseUpdates(pos) {
@@ -118,6 +130,23 @@ export default function Cubes(scene, pos) {
                     cubesObject.remove(mesh);
                 }
             }
+        }
+    }
+
+    function moveRandomly(matrix) {
+        let inc = 1;
+        if (Math.random() > 0.5) inc *= -1;
+
+        switch (Math.floor(Math.random() * 3)) {
+            case 0:
+                matrix.elements[12] += inc;
+                break;
+            case 1:
+                matrix.elements[13] += inc;
+                break;
+            case 2:
+                matrix.elements[14] += inc;
+                break;
         }
     }
 }
