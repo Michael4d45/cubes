@@ -5,6 +5,11 @@ const loader = new ObjectLoader();
 const cubeSize = 0.25;
 const cubeMatrix = new Matrix4();
 
+const hDistance = 4;
+const vDistance = 2;
+const loadDistance = hDistance * hDistance;
+const releaseDistance = loadDistance * 2;
+
 export default function Cubes(scene, pos) {
 
     const cubesObject = new Object3D;
@@ -42,12 +47,7 @@ export default function Cubes(scene, pos) {
         // console.log(count, ave);
     }
 
-    const hDistance = 4;
-    const vDistance = 2;
-    const loadDistance = hDistance * hDistance;
-    const releaseDistance = loadDistance * 2;
-
-    let curChunk = posToCurChunk(pos)
+    let curChunk = cameraPosToCurChunk(pos)
 
     loadCubes();
 
@@ -83,24 +83,8 @@ export default function Cubes(scene, pos) {
         }
     }
 
-    function isClose(x, y, z, d, offset) {
-        if (offset) {
-            x -= offset.x;
-            y -= offset.y;
-            z -= offset.z;
-        }
-        return (x * x + y * y + z * z) <= d
-    }
-
-    function posToCurChunk(pos) {
-        const x = Math.floor((pos.x / cubeSize) / chunkSize);
-        const y = Math.floor((pos.y / cubeSize) / chunkSize);
-        const z = Math.floor((pos.z / cubeSize) / chunkSize);
-        return new Vector3(x, y, z);
-    }
-
     this.update = function (pos) {
-        const newChunk = posToCurChunk(pos)
+        const newChunk = cameraPosToCurChunk(pos)
         if (!newChunk.equals(curChunk)) {
             curChunk = newChunk;
 
@@ -132,21 +116,37 @@ export default function Cubes(scene, pos) {
             }
         }
     }
+}
 
-    function moveRandomly(matrix) {
-        let inc = 1;
-        if (Math.random() > 0.5) inc *= -1;
+function isClose(x, y, z, d, offset) {
+    if (offset) {
+        x -= offset.x;
+        y -= offset.y;
+        z -= offset.z;
+    }
+    return (x * x + y * y + z * z) <= d
+}
 
-        switch (Math.floor(Math.random() * 3)) {
-            case 0:
-                matrix.elements[12] += inc;
-                break;
-            case 1:
-                matrix.elements[13] += inc;
-                break;
-            case 2:
-                matrix.elements[14] += inc;
-                break;
-        }
+function cameraPosToCurChunk(pos) {
+    const x = Math.floor((pos.x / cubeSize) / chunkSize);
+    const y = Math.floor((pos.y / cubeSize) / chunkSize);
+    const z = Math.floor((pos.z / cubeSize) / chunkSize);
+    return new Vector3(x, y, z);
+}
+
+function moveRandomly(matrix) {
+    let inc = 1;
+    if (Math.random() > 0.5) inc *= -1;
+
+    switch (Math.floor(Math.random() * 3)) {
+        case 0:
+            matrix.elements[12] += inc;
+            break;
+        case 1:
+            matrix.elements[13] += inc;
+            break;
+        case 2:
+            matrix.elements[14] += inc;
+            break;
     }
 }
