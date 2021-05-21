@@ -91,16 +91,9 @@ var PointerLockControls = function (camera, domElement) {
 
 	}
 
-	function onPointerlockError() {
-
-		console.error('THREE.PointerLockControls: Unable to use Pointer Lock API');
-
-	}
-
 	this.connect = function () {
 
 		scope.domElement.ownerDocument.addEventListener('pointerlockchange', onPointerlockChange, true);
-		scope.domElement.ownerDocument.addEventListener('pointerlockerror', onPointerlockError);
 		scope.domElement.addEventListener('mousemove', onMouseMove, true);
 
 	};
@@ -108,7 +101,6 @@ var PointerLockControls = function (camera, domElement) {
 	this.disconnect = function () {
 
 		scope.domElement.ownerDocument.removeEventListener('pointerlockchange', onPointerlockChange);
-		scope.domElement.ownerDocument.removeEventListener('pointerlockerror', onPointerlockError);
 		scope.domElement.removeEventListener('mousemove', onMouseMove);
 
 	};
@@ -116,12 +108,6 @@ var PointerLockControls = function (camera, domElement) {
 	this.dispose = function () {
 
 		this.disconnect();
-
-	};
-
-	this.getObject = function () { // retaining this method for backward compatibility
-
-		return camera;
 
 	};
 

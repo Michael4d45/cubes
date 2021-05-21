@@ -1,12 +1,12 @@
 const THREE = require('three');
-import { getControls, moveCamera } from './controls';
+import { setControls, moveCamera } from './controls';
 import { VRButton } from './VRButton';
 import Cubes from './cubes';
 
 const canvas = document.querySelector('#c');
 const vr = document.querySelector('#VRButton');
 
-let camera, scene, renderer, controls, cubes;
+let camera, scene, renderer, cubes;
 
 let prevTime = performance.now();
 
@@ -25,8 +25,8 @@ function init() {
     light.position.set(- 1, 1.5, 1);
     scene.add(light);
 
-    controls = getControls(camera, canvas);
-    scene.add(controls.getObject());
+    setControls(camera, canvas);
+    scene.add(camera);
 
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight, false);

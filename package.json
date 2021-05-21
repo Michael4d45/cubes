@@ -22,6 +22,7 @@
         "tailwindcss": "^2.0.4"
     },
     "dependencies": {
+        "hammerjs": "^2.0.8",
         "laravel-echo": "^1.10.0",
         "pusher-js": "^7.0.3",
         "three": "^0.127.0"
