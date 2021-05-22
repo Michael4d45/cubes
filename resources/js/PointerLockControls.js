@@ -1,10 +1,12 @@
 import {
-	Euler,
 	EventDispatcher,
 	Vector3
 } from 'three';
+import { CameraControls } from './CameraControls';
 
 var PointerLockControls = function (camera, domElement) {
+
+	const cameraControls = new CameraControls(camera);
 
 	if (domElement === undefined) {
 
@@ -16,49 +18,16 @@ var PointerLockControls = function (camera, domElement) {
 	this.domElement = domElement;
 	this.isLocked = false;
 
-	// Set to constrain the pitch of the camera
-	// Range is 0 to Math.PI radians
-	this.minPolarAngle = 0; // radians
-	this.maxPolarAngle = Math.PI; // radians
-
 	//
 	// internals
 	//
 
 	var scope = this;
 
-	var changeEvent = { type: 'change' };
 	var lockEvent = { type: 'lock' };
 	var unlockEvent = { type: 'unlock' };
 
-	var euler = new Euler(0, 0, 0, 'YXZ');
-
-	var PI_2 = Math.PI / 2;
-
 	var vec = new Vector3();
-
-	let lastX = 0;
-	let lastY = 0;
-
-	function move(movementX, movementY) {
-		euler.setFromQuaternion(camera.quaternion);
-
-		euler.y -= movementX * 0.002;
-		euler.x -= movementY * 0.002;
-
-		euler.x = Math.max(PI_2 - scope.maxPolarAngle, Math.min(PI_2 - scope.minPolarAngle, euler.x));
-
-		camera.quaternion.setFromEuler(euler);
-
-		scope.dispatchEvent(changeEvent);
-
-		lastX = movementX;
-		lastY = movementY;
-		if(Math.abs(lastX) < 100 && Math.abs(lastY) < 100) {
-			lastX = 0;
-			lastY = 0;
-		}
-	}
 
 	function onMouseMove(event) {
 
@@ -67,7 +36,7 @@ var PointerLockControls = function (camera, domElement) {
 
 		if (scope.isLocked === false) return;
 
-		move(movementX, movementY);
+		cameraControls.move(movementX, movementY);
 	}
 
 	function onPointerlockChange(event) {
@@ -81,9 +50,9 @@ var PointerLockControls = function (camera, domElement) {
 
 			scope.dispatchEvent(unlockEvent);
 
-			move(-lastX, -lastY);
-			lastX = 0;
-			lastY = 0;
+			cameraControls.move(-cameraControls.lastX, -cameraControls.lastY);
+			cameraControls.lastX = 0;
+			cameraControls.lastY = 0;
 
 			scope.isLocked = false;
 
@@ -111,21 +80,9 @@ var PointerLockControls = function (camera, domElement) {
 
 	};
 
-	this.getDirection = function () {
-
-		var direction = new Vector3(0, 0, - 1);
-
-		return function (v) {
-
-			return v.copy(direction).applyQuaternion(camera.quaternion);
-
-		};
-
-	}();
-
 	this.move = function (v, s) {
-		this.moveRight( - v.x * s)
-		this.moveForward( - v.z * s)
+		this.moveRight(- v.x * s)
+		this.moveForward(- v.z * s)
 
 		// move upwards
 		camera.position.y -= v.y * s;

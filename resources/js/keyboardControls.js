@@ -92,18 +92,18 @@ function onKeyUp(event) {
     }
 };
 
-function setControls(camera, domElement, play, lock, unlock) {
+function setControls(camera, domElement, play, closeMenu, openMenu) {
     controls = new PointerLockControls(camera, domElement);
 
     play.addEventListener('click', function () {
         controls.lock();
     });
     controls.addEventListener('lock', function () {
-        lock();
+        closeMenu();
         init();
     });
     controls.addEventListener('unlock', function () {
-        unlock();
+        openMenu();
     });
 
     document.addEventListener('keydown', onKeyDown);
@@ -113,23 +113,22 @@ function setControls(camera, domElement, play, lock, unlock) {
 const deceleration = 5;
 const acceleration = 10;
 function moveCamera(delta) {
-    if (controls.isLocked === true) {
-        velocity.x -= velocity.x * deceleration * delta;
-        velocity.y -= velocity.y * deceleration * delta;
-        velocity.z -= velocity.z * deceleration * delta;
+    if (controls.isLocked !== true) return;
+    
+    velocity.x -= velocity.x * deceleration * delta;
+    velocity.y -= velocity.y * deceleration * delta;
+    velocity.z -= velocity.z * deceleration * delta;
 
-        direction.x = Number(moveRight) - Number(moveLeft);
-        direction.y = Number(moveUp) - Number(moveDown);
-        direction.z = Number(moveForward) - Number(moveBackward);
-        direction.normalize(); // this ensures consistent movements in all directions
+    direction.x = Number(moveRight) - Number(moveLeft);
+    direction.y = Number(moveUp) - Number(moveDown);
+    direction.z = Number(moveForward) - Number(moveBackward);
+    direction.normalize(); // this ensures consistent movements in all directions
 
-        if (moveLeft || moveRight) velocity.x -= direction.x * acceleration * delta;
-        if (moveUp || moveDown) velocity.y -= direction.y * acceleration * delta;
-        if (moveForward || moveBackward) velocity.z -= direction.z * acceleration * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * acceleration * delta;
+    if (moveUp || moveDown) velocity.y -= direction.y * acceleration * delta;
+    if (moveForward || moveBackward) velocity.z -= direction.z * acceleration * delta;
 
-        controls.move(velocity, delta);
-
-    }
+    controls.move(velocity, delta);
 }
 
 export { setControls, moveCamera }
