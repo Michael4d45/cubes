@@ -1,7 +1,7 @@
 import {
+	Navigator,
 	WebGLRenderer,
 	XRSession,
-	Navigator,
 } from "three";
 
 const nav = <Navigator>navigator;

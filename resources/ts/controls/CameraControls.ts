@@ -1,4 +1,7 @@
-import { Euler, PerspectiveCamera } from 'three';
+import { 
+	Euler, 
+	PerspectiveCamera,
+ } from 'three';
 
 var PI_2 = Math.PI / 2;
 

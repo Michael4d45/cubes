@@ -1,4 +1,11 @@
-import { InstancedMesh, Matrix4, Object3D, ObjectLoader, Scene, Vector3 } from 'three';
+import { 
+    InstancedMesh, 
+    Matrix4, 
+    Object3D, 
+    ObjectLoader, 
+    Scene, 
+    Vector3,
+} from 'three';
 import { chunkSize } from './settings';
 
 const loader = new ObjectLoader();

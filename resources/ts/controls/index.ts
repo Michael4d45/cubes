@@ -1,4 +1,6 @@
-import { PerspectiveCamera } from 'three';
+import { 
+    PerspectiveCamera,
+ } from 'three';
 import { setControls as keyboardControls, moveCamera as keyboardCamera } from './keyboardControls';
 import { setControls as touchControls, moveCamera as touchCamera } from './touchControls';
 

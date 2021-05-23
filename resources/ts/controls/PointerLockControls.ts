@@ -1,7 +1,7 @@
 import {
 	EventDispatcher,
 	PerspectiveCamera,
-	Vector3
+	Vector3,
 } from 'three';
 import { CameraControls } from './CameraControls';
 

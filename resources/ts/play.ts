@@ -1,4 +1,10 @@
-const THREE = require('three');
+import {
+    Color,
+    HemisphereLight,
+    PerspectiveCamera,
+    Scene,
+    WebGLRenderer, 
+} from 'three';
 import { setControls, moveCamera } from './controls';
 import { VRButton } from './controls/VRButton';
 import Cubes from './cubes';
@@ -6,9 +12,9 @@ import Cubes from './cubes';
 const canvas: HTMLCanvasElement | null = document.querySelector('#c');
 const vr: HTMLButtonElement | null = document.querySelector('#VRButton');
 
-let camera: THREE.PerspectiveCamera,
-    scene: THREE.Scene,
-    renderer: THREE.WebGLRenderer,
+let camera: PerspectiveCamera,
+    scene: Scene,
+    renderer: WebGLRenderer,
     cubes: Cubes;
 
 let prevTime = performance.now();
@@ -16,24 +22,24 @@ let prevTime = performance.now();
 init();
 
 function init() {
-    scene = new THREE.Scene();
+    if(!canvas) return;
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    scene = new Scene();
+
+    camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 0);
     scene.add(camera);
 
-    scene.background = new THREE.Color(0xffffff);
-    //scene.fog = new THREE.Fog(0xffffff, 0, 750);
+    scene.background = new Color(0xffffff);
+    //scene.fog = new Fog(0xffffff, 0, 750);
 
-    const light = new THREE.HemisphereLight(0xffffff, 0x888888);
+    const light = new HemisphereLight(0xffffff, 0x888888);
     light.position.set(- 1, 1.5, 1);
     scene.add(light);
 
-    if (canvas) {
-        setControls(camera, canvas);
-    }
+    setControls(camera, canvas);
 
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer = new WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight, false);
 
     if (vr) {

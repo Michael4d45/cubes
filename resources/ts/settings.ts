@@ -1,1 +1,1 @@
-export const chunkSize: number = 16;
+export const chunkSize = 16;

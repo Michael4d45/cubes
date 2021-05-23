@@ -3,25 +3,23 @@ import {
     InstancedMesh,
     Matrix4,
     Color,
-    MeshPhongMaterial
+    MeshPhongMaterial,
 } from 'three';
 import { chunkSize } from '../settings';
 
 const s = 1;
-
 const density = 0.005;
 
 const box = new BoxGeometry(s, s, s);
-
 const material = new MeshPhongMaterial();
 
 const matrix = new Matrix4();
 const color = new Color();
 
 onmessage = function (e) {
-    const pos = e.data;
+    const pos: Position = e.data;
 
-    const cubeData = spoofData(pos);
+    const cubeData: Cubes = spoofData(pos);
     if (cubeData.count <= 0)
         return;
 
@@ -38,7 +36,7 @@ onmessage = function (e) {
 }
 
 function spoofData(pos: Position) {
-    
+
     const cubes: Cubes = {
         array: [],
         count: 0

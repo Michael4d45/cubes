@@ -1,4 +1,7 @@
-import { PerspectiveCamera, Vector3 } from 'three';
+import { 
+    PerspectiveCamera, 
+    Vector3,
+ } from 'three';
 import { PointerLockControls } from './PointerLockControls'
 
 let controls: PointerLockControls;
