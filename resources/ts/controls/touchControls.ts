@@ -13,7 +13,7 @@ let playing = false;
 let speed = 0;
 var direction = new Vector3();
 
-function onLeft({ x, y }: { x: number, y: number }, width: number) {
+function onLeft( x: number, width: number) {
     return x < (width / 2);
 }
 
@@ -25,7 +25,7 @@ function updateSpeed(dX: number, dY: number) {
     console.log(speed);
 }
 
-const acceleration = 0.01;
+const acceleration = 0.1;
 function decelerate() {
     if (speed == 0) return;
     if (Math.abs(speed) <= acceleration) {
@@ -63,7 +63,7 @@ function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HT
     hammer.on("pan", function (ev: any) {
         if (!playing) return;
 
-        if (onLeft(ev.center, canvas.width))
+        if (onLeft(ev.center.x, canvas.width))
             updateSpeed(ev.deltaX, ev.deltaY);
         else
             updateDirection(ev.deltaX, ev.deltaY);
@@ -75,7 +75,7 @@ function moveCamera(delta: number) {
     if (!playing) return;
 
     camera.getWorldDirection(direction);
-    camera.position.add(direction.multiplyScalar(speed));
+    camera.position.add(direction.multiplyScalar(speed * delta));
 }
 
 export { setControls, moveCamera }
