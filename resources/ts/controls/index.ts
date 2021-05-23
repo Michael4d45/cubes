@@ -1,3 +1,4 @@
+import { PerspectiveCamera } from 'three';
 import { setControls as keyboardControls, moveCamera as keyboardCamera } from './keyboardControls';
 import { setControls as touchControls, moveCamera as touchCamera } from './touchControls';
 
@@ -5,25 +6,29 @@ const is_touch_enabled = ('ontouchstart' in window) ||
     (navigator.maxTouchPoints > 0) ||
     (navigator.msMaxTouchPoints > 0);
 
-const menu = document.querySelector('#menu');
-const play = document.querySelector('#play');
-const nav = document.querySelector('nav');
-const scrollHeight = nav.scrollHeight;
+const menu: HTMLElement | null = document.querySelector('#menu');
+const play: HTMLElement | null = document.querySelector('#play');
+const nav: HTMLElement | null = document.querySelector('nav');
+const scrollHeight = nav ? nav.scrollHeight : 0;
 
 function closeMenu() {
-    console.log("closing 2")
+    if(!menu || !nav) return;
+    
     menu.style.display = 'none';
     nav.style.display = 'none';
 }
 
 function openMenu() {
+    if(!menu || !nav) return;
+
     menu.style.display = '';
     nav.style.display = '';
     document.body.scrollTop = scrollHeight;
     document.documentElement.scrollTop = scrollHeight;
 }
 
-function setControls(camera, canvas) {
+function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
+    if(!play) return;
 
     if (is_touch_enabled) {
         touchControls(camera, canvas, play, closeMenu, openMenu);
@@ -32,7 +37,7 @@ function setControls(camera, canvas) {
     }
 }
 
-let moveCamera;
+let moveCamera: (delta: number) => void;
 
 if (is_touch_enabled)
     moveCamera = touchCamera;

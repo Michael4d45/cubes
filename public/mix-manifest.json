@@ -1,6 +1,6 @@
 {
-    "/js/app.js": "/js/app.js",
-    "/js/play.js": "/js/play.js",
-    "/js/loadCubesWorker.js": "/js/loadCubesWorker.js",
-    "/css/app.css": "/css/app.css"
+    "/js/app.js": "/js/app.js?id=0aab6c3ebdac7e30a5b2",
+    "/js/play.js": "/js/play.js?id=4716640a725a4e7b4123",
+    "/js/loadCubesWorker.js": "/js/loadCubesWorker.js?id=2e7bbcbb1b688d43a563",
+    "/css/app.css": "/css/app.css?id=14b8d3bec17cb2f9f8dc"
 }

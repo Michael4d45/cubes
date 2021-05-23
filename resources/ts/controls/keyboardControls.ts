@@ -1,17 +1,17 @@
-import { Vector3 } from 'three';
+import { PerspectiveCamera, Vector3 } from 'three';
 import { PointerLockControls } from './PointerLockControls'
 
-const menu = document.querySelector('#menu');
-const play = document.querySelector('#play');
-const nav = document.querySelector('nav');
-const scrollHeight = nav.scrollHeight;
-
-let controls;
+let controls: PointerLockControls;
 
 const velocity = new Vector3();
 const direction = new Vector3();
 
-let moveForward, moveBackward, moveLeft, moveRight, moveUp, moveDown;
+let moveForward: boolean,
+    moveBackward: boolean,
+    moveLeft: boolean,
+    moveRight: boolean,
+    moveUp: boolean,
+    moveDown: boolean;
 
 function init() {
     moveForward = false;
@@ -25,7 +25,7 @@ function init() {
 
 init();
 
-function onKeyDown(event) {
+function onKeyDown(event: KeyboardEvent) {
     switch (event.code) {
 
         case 'ArrowUp':
@@ -58,7 +58,7 @@ function onKeyDown(event) {
     }
 };
 
-function onKeyUp(event) {
+function onKeyUp(event: KeyboardEvent) {
     console.log(event.code);
     switch (event.code) {
 
@@ -92,8 +92,8 @@ function onKeyUp(event) {
     }
 };
 
-function setControls(camera, domElement, play, closeMenu, openMenu) {
-    controls = new PointerLockControls(camera, domElement);
+function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLElement, closeMenu: () => void, openMenu: () => void) {
+    controls = new PointerLockControls(camera, canvas);
 
     play.addEventListener('click', function () {
         controls.lock();
@@ -112,9 +112,9 @@ function setControls(camera, domElement, play, closeMenu, openMenu) {
 
 const deceleration = 5;
 const acceleration = 10;
-function moveCamera(delta) {
+function moveCamera(delta: number) {
     if (controls.isLocked !== true) return;
-    
+
     velocity.x -= velocity.x * deceleration * delta;
     velocity.y -= velocity.y * deceleration * delta;
     velocity.z -= velocity.z * deceleration * delta;

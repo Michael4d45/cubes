@@ -1,18 +1,24 @@
 const Hammer = require('hammerjs');
-import { Vector3 } from 'three';
+import {
+    PerspectiveCamera,
+    Vector3,
+} from 'three';
 import { CameraControls } from './CameraControls';
 
-let hammer, cameraControls, camera;
+let hammer: typeof Hammer,
+    cameraControls: CameraControls,
+    camera: PerspectiveCamera;
 let playing = false;
+
 let speed = 0;
 var direction = new Vector3();
 
-function onLeft({ x, y }, width) {
+function onLeft({ x, y }: { x: number, y: number }, width: number) {
     return x < (width / 2);
 }
 
 const maxSpeed = 2;
-function updateSpeed(dX, dY) {
+function updateSpeed(dX: number, dY: number) {
     if (Math.abs(speed) >= maxSpeed) return;
 
     speed += -1 * Math.sign(dY) * Math.sqrt(Math.abs(dY)) * 0.01;
@@ -29,11 +35,11 @@ function decelerate() {
     speed -= Math.sign(speed) * acceleration;
 }
 
-function updateDirection(dX, dY) {
+function updateDirection(dX: number, dY: number) {
     cameraControls.move(dX, dY);
 }
 
-function setControls(cam, canvas, play, closeMenu, openMenu) {
+function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLElement, closeMenu: () => void, openMenu: () => void) {
     camera = cam;
     cameraControls = new CameraControls(cam);
 
@@ -42,7 +48,6 @@ function setControls(cam, canvas, play, closeMenu, openMenu) {
     hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
 
     play.addEventListener('click', function () {
-        console.log("closing 1")
         closeMenu();
         playing = true;
         document.body.requestFullscreen();
@@ -55,11 +60,7 @@ function setControls(cam, canvas, play, closeMenu, openMenu) {
         }
     }
 
-    hammer.on("pan tap press", function (ev) {
-        //console.log(ev);
-    });
-
-    hammer.on("pan", function (ev) {
+    hammer.on("pan", function (ev: any) {
         if (!playing) return;
 
         if (onLeft(ev.center, canvas.width))
@@ -69,12 +70,12 @@ function setControls(cam, canvas, play, closeMenu, openMenu) {
     });
 }
 
-function moveCamera(delta) {
+function moveCamera(delta: number) {
     decelerate();
-    if (!playing) return;    
+    if (!playing) return;
 
-    camera.getWorldDirection( direction );
-    camera.position.add( direction.multiplyScalar(speed) );
+    camera.getWorldDirection(direction);
+    camera.position.add(direction.multiplyScalar(speed));
 }
 
 export { setControls, moveCamera }

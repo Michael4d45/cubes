@@ -5,11 +5,11 @@ import {
     Color,
     MeshPhongMaterial
 } from 'three';
-import { chunkSize } from './settings';
+import { chunkSize } from '../settings';
 
 const s = 1;
 
-const density = 0.05;
+const density = 0.005;
 
 const box = new BoxGeometry(s, s, s);
 
@@ -37,12 +37,9 @@ onmessage = function (e) {
     postMessage([mesh.toJSON(), pos]);
 }
 
-function spoofData(pos) {
-    const X = pos[0];
-    const Y = pos[1];
-    const Z = pos[2];
-
-    const cubes = {
+function spoofData(pos: Position) {
+    
+    const cubes: Cubes = {
         array: [],
         count: 0
     }
@@ -54,9 +51,9 @@ function spoofData(pos) {
                 if (Math.random() > density) continue;
                 cubes.array.push({
                     position: {
-                        x: x + (X * chunkSize),
-                        y: y + (Y * chunkSize),
-                        z: z + (Z * chunkSize)
+                        x: x + (pos.x * chunkSize),
+                        y: y + (pos.y * chunkSize),
+                        z: z + (pos.z * chunkSize)
                     },
                     attributes: {
                         color: hexColor
