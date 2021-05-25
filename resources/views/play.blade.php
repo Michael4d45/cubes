@@ -10,6 +10,9 @@
     <canvas id='c' class='w-full'></canvas>
 
     @push('scripts')
+        <script>
+            var settings = {!! json_encode($settings) !!}
+        </script>
         <script src="{{ mix('js/play.js') }}"></script>
     @endpush
 </x-app-layout>

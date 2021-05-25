@@ -61,7 +61,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Privlages granted to this user.
+     * Privileges granted to this user.
      *
      * @return collection
      */
@@ -89,5 +89,13 @@ class User extends Authenticatable
         return $this->hasRole('admin');
     }
 
+    public function settings()
+    {
+        return $this->hasMany(UserSetting::class);
+    }
 
+    public function getPlaySettingsAttribute() 
+    {
+        return Setting::settingsObject($this->settings()->whereIn('name', Setting::playSettings)->get());
+    }
 }

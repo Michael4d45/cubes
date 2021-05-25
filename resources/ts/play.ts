@@ -8,6 +8,7 @@ import {
 import { setControls, moveCamera } from './controls';
 import { VRButton } from './controls/VRButton';
 import Cubes from './cubes';
+import { backgroundColor } from './userSettings';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('#c');
 const vr: HTMLButtonElement | null = document.querySelector('#VRButton');
@@ -30,7 +31,7 @@ function init() {
     camera.position.set(0, 0, 0);
     scene.add(camera);
 
-    scene.background = new Color(0xffffff);
+    scene.background = new Color(backgroundColor);
     //scene.fog = new Fog(0xffffff, 0, 750);
 
     const light = new HemisphereLight(0xffffff, 0x888888);

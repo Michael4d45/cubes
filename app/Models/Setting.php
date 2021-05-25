@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use stdClass;
 
 /* to get data
 *    Setting::email()
@@ -23,9 +24,14 @@ class Setting extends Model
     protected $keyType = 'string';
 
     const ROWS = [
+        'backgroundColor',
     ];
 
     const CASTS = [
+    ];
+
+    const playSettings = [
+        'backgroundColor',
     ];
 
     private static function update_($name, $data)
@@ -70,7 +76,7 @@ class Setting extends Model
 
     public static function getCast($key)
     {
-        if(!static::castable($key))
+        if (!static::castable($key))
             return null;
 
         $cast = static::CASTS[$key];
@@ -107,9 +113,32 @@ class Setting extends Model
         $format = static::getFormat($key);
         switch ($cast) {
             case 'date':
-                if($value instanceof CarbonInterface)
+                if ($value instanceof CarbonInterface)
                     return $value->format($format);
         }
         return $value;
+    }
+
+    public static function settingsObject($data)
+    {
+        $settings = new stdClass;
+
+        foreach($data as $setting)
+            $settings->{$setting->name} = $setting->data;
+
+        return $settings;
+    }
+
+    public static function playDefaults()
+    {
+        $settings_data = static::whereIn('name', static::playSettings)
+            ->get();
+        
+        $settings = new stdClass;
+
+        foreach($settings_data as $setting)
+            $settings->{$setting->name} = $setting->data;
+
+        return $settings;
     }
 }
