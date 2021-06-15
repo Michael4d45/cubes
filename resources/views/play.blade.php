@@ -1,7 +1,10 @@
 <x-app-layout>
     <div id='menu' class='absolute w-full p-10 text-center'>
         <div class='m-2'>
-            <button class='p-3 text-4xl uppercase bg-yellow-300 rounded' id='play'>Play!</button>
+            <button class='p-3 text-4xl uppercase bg-yellow-300 rounded' id='play_touch'>Touch Controls</button>
+        </div>
+        <div class='m-2'>
+            <button class='p-3 text-4xl uppercase bg-yellow-300 rounded' id='play_keyboard'>Keyboard Controls</button>
         </div>
         <div class='m-2'>
             <button class='hidden p-3 text-4xl uppercase bg-yellow-300 rounded none' id='VRButton'>Enter VR</button>

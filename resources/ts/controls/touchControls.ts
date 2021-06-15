@@ -39,7 +39,7 @@ function updateDirection(dX: number, dY: number) {
     cameraControls.move(dX, dY);
 }
 
-function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLElement, closeMenu: () => void, openMenu: () => void) {
+function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLButtonElement, closeMenu: () => void, openMenu: () => void) {
     camera = cam;
     cameraControls = new CameraControls(cam);
 

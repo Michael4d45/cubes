@@ -1,6 +1,6 @@
-import { 
+import {
     PerspectiveCamera,
- } from 'three';
+} from 'three';
 import { setControls as keyboardControls, moveCamera as keyboardCamera } from './keyboardControls';
 import { setControls as touchControls, moveCamera as touchCamera } from './touchControls';
 
@@ -9,19 +9,20 @@ const is_touch_enabled = ('ontouchstart' in window) ||
     (navigator.msMaxTouchPoints > 0);
 
 const menu: HTMLElement | null = document.querySelector('#menu');
-const play: HTMLElement | null = document.querySelector('#play');
+const playTouch: HTMLButtonElement | null = document.querySelector('#play_touch');
+const playKeyboard: HTMLButtonElement | null = document.querySelector('#play_keyboard');
 const nav: HTMLElement | null = document.querySelector('nav');
 const scrollHeight = nav ? nav.scrollHeight : 0;
 
 function closeMenu() {
-    if(!menu || !nav) return;
-    
+    if (!menu || !nav) return;
+
     menu.style.display = 'none';
     nav.style.display = 'none';
 }
 
 function openMenu() {
-    if(!menu || !nav) return;
+    if (!menu || !nav) return;
 
     menu.style.display = '';
     nav.style.display = '';
@@ -29,21 +30,41 @@ function openMenu() {
     document.documentElement.scrollTop = scrollHeight;
 }
 
-function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
-    if(!play) return;
+let useTouch = false;
 
-    if (is_touch_enabled) {
-        touchControls(camera, canvas, play, closeMenu, openMenu);
-    } else {
-        keyboardControls(camera, canvas, play, closeMenu, openMenu);
+if (!is_touch_enabled && playTouch) {
+    playTouch.remove();
+    if (playKeyboard) {
+        playKeyboard.textContent = "Play!"
     }
+} else if (playTouch) {
+    playTouch.addEventListener('click', function () {
+        useTouch = true;
+    });
 }
 
-let moveCamera: (delta: number) => void;
+playKeyboard?.addEventListener('click', function () {
+    useTouch = false;
+});
 
-if (is_touch_enabled)
-    moveCamera = touchCamera;
-else
-    moveCamera = keyboardCamera;
+function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement) {
+    if (!playTouch || !playKeyboard) return;
+
+    if (is_touch_enabled)
+        touchControls(camera, canvas, playTouch, closeMenu, openMenu);
+
+    keyboardControls(camera, canvas, playKeyboard, closeMenu, openMenu);
+}
+
+function moveCamera(delta: number) {
+    if (useTouch) {
+        touchCamera(delta);
+    }
+    else {
+        keyboardCamera(delta);
+    }
+
+}
+
 
 export { setControls, moveCamera }

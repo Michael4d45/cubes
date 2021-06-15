@@ -95,7 +95,7 @@ function onKeyUp(event: KeyboardEvent) {
     }
 };
 
-function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLElement, closeMenu: () => void, openMenu: () => void) {
+function setControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement, play: HTMLButtonElement, closeMenu: () => void, openMenu: () => void) {
     controls = new PointerLockControls(camera, canvas);
 
     play.addEventListener('click', function () {
