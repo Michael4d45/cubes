@@ -1,11 +1,11 @@
-const Hammer = require('hammerjs');
 import {
     PerspectiveCamera,
     Vector3,
 } from 'three';
 import { CameraControls } from './CameraControls';
+import Touches from './Touches';
 
-let hammer: typeof Hammer,
+let touches: Touches,
     cameraControls: CameraControls,
     camera: PerspectiveCamera;
 let playing = false;
@@ -44,8 +44,7 @@ function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HT
     cameraControls = new CameraControls(cam);
 
     //alert("using touch controls");
-    hammer = new Hammer(canvas);
-    hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+    touches = new Touches(canvas);
 
     play.addEventListener('click', function () {
         closeMenu();
@@ -60,10 +59,10 @@ function setControls(cam: PerspectiveCamera, canvas: HTMLCanvasElement, play: HT
         }
     }
 
-    hammer.on("pan", function (ev: any) {
+    touches.on("pan", function (ev: any) {
         if (!playing) return;
 
-        if (onLeft(ev.center.x, canvas.width))
+        if (onLeft(ev.curPos.x, canvas.width))
             updateSpeed(ev.deltaX, ev.deltaY);
         else
             updateDirection(ev.deltaX, ev.deltaY);
