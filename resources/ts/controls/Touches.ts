@@ -3,8 +3,13 @@ interface Position {
     y: number
 }
 
+interface TouchFunction {
+    (touch: TouchPoint): void
+}
+
 class TouchPoint {
     parent: Touches;
+    touch: Touch;
 
     startTime: number = 0;
     deltaTime: number = 0;
@@ -17,20 +22,18 @@ class TouchPoint {
 
     longPressesTimeout: number | undefined;
 
-    constructor(parent: Touches, e: TouchEvent) {
+    constructor(parent: Touches, touch: Touch) {
         this.parent = parent;
-        this.start(e)
+        this.touch = touch;
     }
 
-    start(e: TouchEvent) {
+    start(touch: Touch) {
+        this.touch = touch;
         this.state = "start";
         this.eventType = "press";
         this.startTime = performance.now();
-        this.deltaTime = 0;
-        this.setPos(this.startPos, e);
-        this.setPos(this.curPos, e);
-        this.deltaX = 0;
-        this.deltaY = 0;
+        this.setPos(this.startPos, touch);
+        this.setCurPos(touch);
 
         const scope = this;
 
@@ -40,31 +43,36 @@ class TouchPoint {
         }, this.parent.longPressThreshold)
     }
 
-    setPos(pos: Position, e: TouchEvent) {
-        pos.x = e.touches[0].pageX - this.parent.el.offsetLeft;
-        pos.y = e.touches[0].pageY - this.parent.el.offsetTop;
+    setPos(pos: Position, touch: Touch) {
+        pos.x = touch.pageX - this.parent.el.offsetLeft;
+        pos.y = touch.pageY - this.parent.el.offsetTop;
     }
 
-    touchmove(e: TouchEvent) {
-        console.log(e);
-        this.state = "move";
-        this.eventType = "pan";
-        this.setPos(this.curPos, e);
+    setCurPos(touch: Touch) {
+        this.setPos(this.curPos, touch);
         this.deltaX = this.curPos.x - this.startPos.x;
         this.deltaY = this.curPos.y - this.startPos.y;
-
         this.deltaTime = performance.now() - this.startTime;
-        //this.parent.pans.forEach((callback) => { callback(this) });
     }
 
-    touchend() {
+    move(touch: Touch) {
+        this.state = "move";
+        this.eventType = "pan";
+        this.setCurPos(touch);
+        this.parent.pans.forEach((callback) => { callback(this); });
+    }
+
+    end(touch: Touch) {
         if (this.longPressesTimeout !== undefined)
             clearTimeout(this.longPressesTimeout)
 
         this.state = "end";
 
-        this.deltaTime = performance.now() - this.startTime;
+        this.setCurPos(touch);
         switch (this.eventType) {
+            case "pan": {
+                this.parent.endpans.forEach((callback) => { callback(this); });
+            }
             case "press": {
                 //scope.presses.forEach((callback) => { callback(scope) });
             }
@@ -81,6 +89,7 @@ class Touches {
     points: Map<number, TouchPoint> = new Map;
 
     pans: Array<Function> = [];
+    endpans: Array<Function> = [];
     presses: Array<Function> = [];
     longPresses: Array<Function> = [];
 
@@ -91,26 +100,47 @@ class Touches {
 
         const scope = this;
 
-        this.el.addEventListener('touchstart', function (e) {
-            console.log("start", e);
-            let touchPoint = new TouchPoint(scope, e);
+        this.el.addEventListener('touchstart', function (e: TouchEvent) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (!scope.points.has(touch.identifier)) {
+                    scope.points.set(touch.identifier, new TouchPoint(scope, touch));
+                }
+                const touchPoint = scope.points.get(touch.identifier);
+                touchPoint?.start(touch)
+            }
         });
 
-        this.el.addEventListener('touchmove', function (e) {
-
-            console.log("move", e);
+        this.el.addEventListener('touchmove', function (e: TouchEvent) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (!scope.points.has(touch.identifier)) {
+                    throw "move without start";
+                }
+                const touchPoint = scope.points.get(touch.identifier);
+                touchPoint?.move(touch)
+            }
         });
 
-        this.el.addEventListener('touchend', function (e) {
-
-            console.log("end", e);
+        this.el.addEventListener('touchend', function (e: TouchEvent) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (!scope.points.has(touch.identifier)) {
+                    throw "end without start";
+                }
+                const touchPoint = scope.points.get(touch.identifier);
+                touchPoint?.end(touch)
+            }
         });
     }
 
-    on(eventType: string, callback: Function) {
+    on(eventType: string, callback: TouchFunction) {
         switch (eventType) {
             case "pan": {
                 this.pans.push(callback)
+            }
+            case "endpan": {
+                this.endpans.push(callback)
             }
             case "press": {
                 this.presses.push(callback)
@@ -122,4 +152,4 @@ class Touches {
     }
 }
 
-export default Touches
+export { Touches, TouchPoint }
