@@ -21,7 +21,7 @@ class CameraControls {
 		var euler = new Euler(0, 0, 0, 'YXZ');
 
 		this.move = function (movementX: number, movementY: number) {
-			if (!(movementX && movementY))
+			if ((typeof movementX !== 'number') || (typeof movementY !== 'number'))
 				return;
 
 			euler.setFromQuaternion(camera.quaternion);
